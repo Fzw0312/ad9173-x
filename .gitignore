@@ -1,0 +1,60 @@
+# Vivado and simulator generated files
+.Xil/
+**/.Xil/
+xsim.dir/
+**/xsim.dir/
+*.jou
+*.log
+*.pb
+*.str
+*.wdb
+*.vcd
+*.vvp
+*.sdb
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+*.gen/
+
+# Build outputs and temporary artifacts
+build/
+**/build/
+*.bit
+*.bin
+*.ltx
+*.dcp
+*.rpt
+*.rpx
+*.xml
+*.html
+*.tmp
+*.bak
+*.backup
+
+# Large local captures and duplicated snapshots
+archive/
+HostApp/generated/
+Log/*.csv
+Log/*.pid
+Log/*_pid.txt
+Log/*_run.ps1
+Log/*_extract.txt
+Log/*.pdf
+Log/wd_test.txt
+backup/
+
+# Python and host application local state
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Editor and OS files
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+*Zone.Identifier*
