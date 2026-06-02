@@ -62,6 +62,8 @@ set rtl_files [list \
     [stage_file [file join $prj_dir src rtl common axi_lite_init_engine.v]        [file join $stage_dir src rtl common axi_lite_init_engine.v]] \
     [stage_file [file join $prj_dir src rtl common jesd_phy_tx_axi_init.v]        [file join $stage_dir src rtl common jesd_phy_tx_axi_init.v]] \
     [stage_file [file join $prj_dir src rtl common jesd_clock.v]                  [file join $stage_dir src rtl common jesd_clock.v]] \
+    [stage_file [file join $prj_dir src rtl common mb_io_dac_regs.v]             [file join $stage_dir src rtl common mb_io_dac_regs.v]] \
+    [stage_file [file join $prj_dir src rtl common mb_control_island.v]           [file join $stage_dir src rtl common mb_control_island.v]] \
     [stage_file [file join $prj_dir src rtl common pattern_gen_256.v]             [file join $stage_dir src rtl common pattern_gen_256.v]] \
     [stage_file [file join $prj_dir src rtl common tx_mapper.v]                   [file join $stage_dir src rtl common tx_mapper.v]] \
     [stage_file [file join $prj_dir src rtl common k5wg_udp_dac_config_rx.v]      [file join $stage_dir src rtl common k5wg_udp_dac_config_rx.v]] \
@@ -161,6 +163,15 @@ set_property -dict [list \
     CONFIG.Rx_use_64b {0} \
 ] [get_ips jesd204_phy_tx_quad227]
 
+create_ip -name microblaze_mcs -vendor xilinx.com -library ip -version 3.0 -module_name mb_mcs_ctrl -dir $ip_dir
+set_property -dict [list \
+    CONFIG.FREQ {200.0} \
+    CONFIG.MEMSIZE {16384} \
+    CONFIG.USE_IO_BUS {1} \
+    CONFIG.DEBUG_ENABLED {1} \
+    CONFIG.USE_BSCAN {0} \
+] [get_ips mb_mcs_ctrl]
+
 generate_target all [get_ips]
 export_ip_user_files -of_objects [get_ips] -no_script -sync -force -quiet
 
@@ -173,6 +184,7 @@ set ip_objects [list \
     [get_ips jesd204c_tx_link1] \
     [get_ips jesd204_phy_tx_quad226] \
     [get_ips jesd204_phy_tx_quad227] \
+    [get_ips mb_mcs_ctrl] \
 ]
 foreach ip_obj $ip_objects {
     set ip_file [get_property IP_FILE $ip_obj]

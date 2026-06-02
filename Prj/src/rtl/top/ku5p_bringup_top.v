@@ -261,6 +261,26 @@ module ku5p_bringup_top (
     wire [31:0] dac_wave_wr_data_rxclk;
     wire [12:0] dac_wave_total_samples_rxclk;
     wire        dac_wave_commit_toggle_rxclk;
+    wire        mb_dac_cfg_valid_sysclk;
+    wire        mb_dac_cfg_reset_phase_sysclk;
+    wire [47:0] mb_dac_cfg_phase_inc0_sysclk;
+    wire [47:0] mb_dac_cfg_phase_inc1_sysclk;
+    wire [47:0] mb_dac_cfg_phase_inc2_sysclk;
+    wire [47:0] mb_dac_cfg_phase_inc3_sysclk;
+    wire [15:0] mb_dac_cfg_scale0_sysclk;
+    wire [15:0] mb_dac_cfg_scale1_sysclk;
+    wire [15:0] mb_dac_cfg_scale2_sysclk;
+    wire [15:0] mb_dac_cfg_scale3_sysclk;
+    (* keep = "true" *) wire [3:0]  mb_rf_switch_sel;
+    (* keep = "true" *) wire [15:0] mb_rf_atten0;
+    (* keep = "true" *) wire [15:0] mb_rf_atten1;
+    (* keep = "true" *) wire [15:0] mb_rf_atten2;
+    (* keep = "true" *) wire [15:0] mb_rf_atten3;
+    (* keep = "true" *) wire [31:0] mb_rf_control_flags;
+    (* keep = "true" *) wire [7:0]  mb_dac0_profile;
+    (* keep = "true" *) wire [7:0]  mb_dac1_profile;
+    wire [31:0] mb_status0;
+    wire [31:0] mb_status1;
 
     reg         dac_cfg_toggle_rxclk;
     reg         dac_cfg_reset_phase_hold_rxclk;
@@ -272,8 +292,19 @@ module ku5p_bringup_top (
     reg [15:0] dac_cfg_scale1_hold_rxclk;
     reg [15:0] dac_cfg_scale2_hold_rxclk;
     reg [15:0] dac_cfg_scale3_hold_rxclk;
+    reg         mb_cfg_toggle_sysclk;
+    reg         mb_cfg_reset_phase_hold_sysclk;
+    reg [47:0] mb_cfg_phase_inc0_hold_sysclk;
+    reg [47:0] mb_cfg_phase_inc1_hold_sysclk;
+    reg [47:0] mb_cfg_phase_inc2_hold_sysclk;
+    reg [47:0] mb_cfg_phase_inc3_hold_sysclk;
+    reg [15:0] mb_cfg_scale0_hold_sysclk;
+    reg [15:0] mb_cfg_scale1_hold_sysclk;
+    reg [15:0] mb_cfg_scale2_hold_sysclk;
+    reg [15:0] mb_cfg_scale3_hold_sysclk;
     (* ASYNC_REG = "TRUE" *) reg [2:0] phy1_rx_rst_sync;
     (* ASYNC_REG = "TRUE" *) reg [2:0] dac_cfg_toggle_meta_jclk;
+    (* ASYNC_REG = "TRUE" *) reg [2:0] mb_cfg_toggle_meta_jclk;
     reg        dac_cfg_reset_phase_jclk;
     reg [47:0] dac_cfg_phase_inc0_jclk;
     reg [47:0] dac_cfg_phase_inc1_jclk;
@@ -321,6 +352,26 @@ module ku5p_bringup_top (
         (&jesd_tx_reset_done_dbg) &&
         (&jesd_gt_txresetdone_dbg) &&
         (&jesd_gt_powergood_dbg);
+    assign mb_status0 = {
+        8'h17,
+        state,
+        hmc_ok, hmc_fail, dac_init_ok, dac_init_fail,
+        jesd_links_ready, jesd_release, jesd_pll_ready, jesd_release_ready,
+        jesd_cfg_done_seen, phy_axi_cfg_done, jesd_cfg_done, eth_clk_locked,
+        jesd_tready_dbg,
+        jesd_aresetn_dbg,
+        txen_1, txen_0, 2'b00
+    };
+    assign mb_status1 = {
+        jesd_retry_count,
+        jesd_qpll_lock_dbg,
+        jesd_tx_reset_done_dbg,
+        jesd_gt_powergood_dbg,
+        jesd_tready_dbg,
+        jesd_aresetn_dbg,
+        jesd_txoutclk_heartbeat1[1:0],
+        jesd_txoutclk_heartbeat0[1:0]
+    };
 
     assign tx_tone_reset[0] = !jesd_release || !jesd_tx_aresetn0;
     assign tx_tone_reset[1] = !jesd_release || !jesd_tx_aresetn1;
@@ -455,6 +506,31 @@ module ku5p_bringup_top (
         .cs_n      (dac_init_cs),
         .sdio_o    (dac_init_sdio_o),
         .sdio_oe   (dac_init_sdio_oe)
+    );
+
+    mb_control_island u_mb_control_island (
+        .clk             (sys_clk),
+        .rst             (init_rst),
+        .status0         (mb_status0),
+        .status1         (mb_status1),
+        .cfg_valid       (mb_dac_cfg_valid_sysclk),
+        .cfg_reset_phase (mb_dac_cfg_reset_phase_sysclk),
+        .cfg_phase_inc0  (mb_dac_cfg_phase_inc0_sysclk),
+        .cfg_phase_inc1  (mb_dac_cfg_phase_inc1_sysclk),
+        .cfg_phase_inc2  (mb_dac_cfg_phase_inc2_sysclk),
+        .cfg_phase_inc3  (mb_dac_cfg_phase_inc3_sysclk),
+        .cfg_scale0      (mb_dac_cfg_scale0_sysclk),
+        .cfg_scale1      (mb_dac_cfg_scale1_sysclk),
+        .cfg_scale2      (mb_dac_cfg_scale2_sysclk),
+        .cfg_scale3      (mb_dac_cfg_scale3_sysclk),
+        .rf_switch_sel   (mb_rf_switch_sel),
+        .rf_atten0       (mb_rf_atten0),
+        .rf_atten1       (mb_rf_atten1),
+        .rf_atten2       (mb_rf_atten2),
+        .rf_atten3       (mb_rf_atten3),
+        .rf_control_flags(mb_rf_control_flags),
+        .dac0_profile    (mb_dac0_profile),
+        .dac1_profile    (mb_dac1_profile)
     );
 
     jesd204_tx_init_link0 #(
@@ -948,6 +1024,32 @@ module ku5p_bringup_top (
         end
     end
 
+    always @(posedge sys_clk) begin
+        if (init_rst) begin
+            mb_cfg_toggle_sysclk <= 1'b0;
+            mb_cfg_reset_phase_hold_sysclk <= 1'b0;
+            mb_cfg_phase_inc0_hold_sysclk <= 48'h053555555555;
+            mb_cfg_phase_inc1_hold_sysclk <= 48'h07d000000000;
+            mb_cfg_phase_inc2_hold_sysclk <= 48'h053555555555;
+            mb_cfg_phase_inc3_hold_sysclk <= 48'h07d000000000;
+            mb_cfg_scale0_hold_sysclk <= 16'h7fff;
+            mb_cfg_scale1_hold_sysclk <= 16'h7fff;
+            mb_cfg_scale2_hold_sysclk <= 16'h7fff;
+            mb_cfg_scale3_hold_sysclk <= 16'h7fff;
+        end else if (mb_dac_cfg_valid_sysclk) begin
+            mb_cfg_reset_phase_hold_sysclk <= mb_dac_cfg_reset_phase_sysclk;
+            mb_cfg_phase_inc0_hold_sysclk <= mb_dac_cfg_phase_inc0_sysclk;
+            mb_cfg_phase_inc1_hold_sysclk <= mb_dac_cfg_phase_inc1_sysclk;
+            mb_cfg_phase_inc2_hold_sysclk <= mb_dac_cfg_phase_inc2_sysclk;
+            mb_cfg_phase_inc3_hold_sysclk <= mb_dac_cfg_phase_inc3_sysclk;
+            mb_cfg_scale0_hold_sysclk <= mb_dac_cfg_scale0_sysclk;
+            mb_cfg_scale1_hold_sysclk <= mb_dac_cfg_scale1_sysclk;
+            mb_cfg_scale2_hold_sysclk <= mb_dac_cfg_scale2_sysclk;
+            mb_cfg_scale3_hold_sysclk <= mb_dac_cfg_scale3_sysclk;
+            mb_cfg_toggle_sysclk <= ~mb_cfg_toggle_sysclk;
+        end
+    end
+
     always @(posedge phy1_rxck) begin
         if (phy1_rx_rst) begin
             dac_cfg_toggle_rxclk <= 1'b0;
@@ -977,6 +1079,7 @@ module ku5p_bringup_top (
     always @(posedge jesd_core_clk) begin
         if (init_rst) begin
             dac_cfg_toggle_meta_jclk <= 3'b000;
+            mb_cfg_toggle_meta_jclk <= 3'b000;
             dac_cfg_reset_phase_jclk <= 1'b0;
             dac_cfg_phase_inc0_jclk <= 48'h053555555555;
             dac_cfg_phase_inc1_jclk <= 48'h07d000000000;
@@ -993,6 +1096,10 @@ module ku5p_bringup_top (
                 dac_cfg_toggle_meta_jclk[1:0],
                 dac_cfg_toggle_rxclk
             };
+            mb_cfg_toggle_meta_jclk <= {
+                mb_cfg_toggle_meta_jclk[1:0],
+                mb_cfg_toggle_sysclk
+            };
             if (dac_cfg_toggle_meta_jclk[2] ^ dac_cfg_toggle_meta_jclk[1]) begin
                 dac_cfg_reset_phase_jclk <= dac_cfg_reset_phase_hold_rxclk;
                 dac_cfg_phase_inc0_jclk <= dac_cfg_phase_inc0_hold_rxclk;
@@ -1003,6 +1110,18 @@ module ku5p_bringup_top (
                 dac_cfg_scale1_jclk <= dac_cfg_scale1_hold_rxclk;
                 dac_cfg_scale2_jclk <= dac_cfg_scale2_hold_rxclk;
                 dac_cfg_scale3_jclk <= dac_cfg_scale3_hold_rxclk;
+                dac_cfg_apply_pulse_jclk <= 1'b1;
+            end
+            if (mb_cfg_toggle_meta_jclk[2] ^ mb_cfg_toggle_meta_jclk[1]) begin
+                dac_cfg_reset_phase_jclk <= mb_cfg_reset_phase_hold_sysclk;
+                dac_cfg_phase_inc0_jclk <= mb_cfg_phase_inc0_hold_sysclk;
+                dac_cfg_phase_inc1_jclk <= mb_cfg_phase_inc1_hold_sysclk;
+                dac_cfg_phase_inc2_jclk <= mb_cfg_phase_inc2_hold_sysclk;
+                dac_cfg_phase_inc3_jclk <= mb_cfg_phase_inc3_hold_sysclk;
+                dac_cfg_scale0_jclk <= mb_cfg_scale0_hold_sysclk;
+                dac_cfg_scale1_jclk <= mb_cfg_scale1_hold_sysclk;
+                dac_cfg_scale2_jclk <= mb_cfg_scale2_hold_sysclk;
+                dac_cfg_scale3_jclk <= mb_cfg_scale3_hold_sysclk;
                 dac_cfg_apply_pulse_jclk <= 1'b1;
             end
         end
@@ -1060,7 +1179,18 @@ module ku5p_bringup_top (
         dac_cfg_scale1_hold_rxclk <= 16'h7fff;
         dac_cfg_scale2_hold_rxclk <= 16'h7fff;
         dac_cfg_scale3_hold_rxclk <= 16'h7fff;
+        mb_cfg_toggle_sysclk <= 1'b0;
+        mb_cfg_reset_phase_hold_sysclk <= 1'b0;
+        mb_cfg_phase_inc0_hold_sysclk <= 48'h053555555555;
+        mb_cfg_phase_inc1_hold_sysclk <= 48'h07d000000000;
+        mb_cfg_phase_inc2_hold_sysclk <= 48'h053555555555;
+        mb_cfg_phase_inc3_hold_sysclk <= 48'h07d000000000;
+        mb_cfg_scale0_hold_sysclk <= 16'h7fff;
+        mb_cfg_scale1_hold_sysclk <= 16'h7fff;
+        mb_cfg_scale2_hold_sysclk <= 16'h7fff;
+        mb_cfg_scale3_hold_sysclk <= 16'h7fff;
         dac_cfg_toggle_meta_jclk <= 3'b000;
+        mb_cfg_toggle_meta_jclk <= 3'b000;
         dac_cfg_reset_phase_jclk <= 1'b0;
         dac_cfg_phase_inc0_jclk <= 48'h053555555555;
         dac_cfg_phase_inc1_jclk <= 48'h07d000000000;
