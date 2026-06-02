@@ -35,7 +35,7 @@ module pattern_gen_256 #(
     localparam [47:0] DAC2_PHASE_INC = 48'h053555555555; // 20 MHz mirror
     localparam [47:0] DAC3_PHASE_INC = 48'h07d000000000; // 30 MHz mirror
     localparam integer WAVE_BEAT_ADDR_WIDTH = WAVE_ADDR_WIDTH - 2;
-    localparam integer WAVE_BEATS = (1 << WAVE_BEAT_ADDR_WIDTH);
+    localparam integer WAVE_MEMORY_BITS = (1 << WAVE_ADDR_WIDTH) * 32;
 
     reg [47:0] dac0_phase;
     reg [47:0] dac1_phase;
@@ -49,12 +49,14 @@ module pattern_gen_256 #(
     reg [15:0] dac1_scale;
     reg [15:0] dac2_scale;
     reg [15:0] dac3_scale;
-    (* ram_style = "block" *) reg [127:0] wave_ram [0:WAVE_BEATS-1];
-    reg [WAVE_BEAT_ADDR_WIDTH-1:0] wave_play_beat;
+    reg [WAVE_BEAT_ADDR_WIDTH-1:0] wave_read_beat;
     reg [WAVE_BEAT_ADDR_WIDTH:0] wave_beat_limit;
-    reg [127:0] wave_rd_word;
+    reg [1:0] wave_rd_valid_pipe;
     reg wave_active;
     (* ASYNC_REG = "TRUE" *) reg [2:0] wave_commit_meta;
+    wire [127:0] wave_mem_dout;
+    wire wave_mem_rd_en = wave_active && (|advance);
+    wire [0:0] wave_mem_wea = (!wave_rst && wave_wr_en) ? 1'b1 : 1'b0;
 
     wire [47:0] dac0_phase0 = dac0_phase;
     wire [47:0] dac0_phase1 = dac0_phase + dac0_phase_inc;
@@ -73,9 +75,6 @@ module pattern_gen_256 #(
     wire [47:0] dac3_phase2 = dac3_phase + (dac3_phase_inc << 1);
     wire [47:0] dac3_phase3 = dac3_phase + (dac3_phase_inc << 1) + dac3_phase_inc;
 
-    wire [WAVE_BEAT_ADDR_WIDTH-1:0] wave_wr_beat_addr =
-        wave_wr_addr[WAVE_ADDR_WIDTH-1:2];
-    wire [1:0] wave_wr_lane = wave_wr_addr[1:0];
     wire wave_commit_seen = wave_commit_meta[2] ^ wave_commit_meta[1];
     wire [WAVE_BEAT_ADDR_WIDTH:0] wave_total_beats_raw =
         (wave_total_samples[WAVE_ADDR_WIDTH:2] +
@@ -83,14 +82,21 @@ module pattern_gen_256 #(
     wire [WAVE_BEAT_ADDR_WIDTH:0] wave_total_beats =
         (wave_total_beats_raw == {WAVE_BEAT_ADDR_WIDTH+1{1'b0}}) ?
         {{WAVE_BEAT_ADDR_WIDTH{1'b0}}, 1'b1} : wave_total_beats_raw;
-    wire [15:0] wave_ch0_sample0 = wave_rd_word[15:0];
-    wire [15:0] wave_ch1_sample0 = wave_rd_word[31:16];
-    wire [15:0] wave_ch0_sample1 = wave_rd_word[47:32];
-    wire [15:0] wave_ch1_sample1 = wave_rd_word[63:48];
-    wire [15:0] wave_ch0_sample2 = wave_rd_word[79:64];
-    wire [15:0] wave_ch1_sample2 = wave_rd_word[95:80];
-    wire [15:0] wave_ch0_sample3 = wave_rd_word[111:96];
-    wire [15:0] wave_ch1_sample3 = wave_rd_word[127:112];
+    wire [WAVE_BEAT_ADDR_WIDTH:0] wave_next_beat_ext =
+        {1'b0, wave_read_beat} + {{WAVE_BEAT_ADDR_WIDTH{1'b0}}, 1'b1};
+    wire wave_next_wrap = (wave_next_beat_ext >= wave_beat_limit);
+    wire [WAVE_BEAT_ADDR_WIDTH-1:0] wave_next_beat =
+        wave_next_wrap ? {WAVE_BEAT_ADDR_WIDTH{1'b0}} :
+        wave_next_beat_ext[WAVE_BEAT_ADDR_WIDTH-1:0];
+    wire wave_word_valid = wave_rd_valid_pipe[1];
+    wire [15:0] wave_ch0_sample0 = wave_mem_dout[15:0];
+    wire [15:0] wave_ch1_sample0 = wave_mem_dout[31:16];
+    wire [15:0] wave_ch0_sample1 = wave_mem_dout[47:32];
+    wire [15:0] wave_ch1_sample1 = wave_mem_dout[63:48];
+    wire [15:0] wave_ch0_sample2 = wave_mem_dout[79:64];
+    wire [15:0] wave_ch1_sample2 = wave_mem_dout[95:80];
+    wire [15:0] wave_ch0_sample3 = wave_mem_dout[111:96];
+    wire [15:0] wave_ch1_sample3 = wave_mem_dout[127:112];
 
     wire [15:0] dac0_sample0 = scale_sample(sine_sample(dac0_phase0), dac0_scale);
     wire [15:0] dac0_sample1 = scale_sample(sine_sample(dac0_phase1), dac0_scale);
@@ -260,16 +266,45 @@ module pattern_gen_256 #(
         end
     endfunction
 
-    always @(posedge wave_clk) begin
-        if (!wave_rst && wave_wr_en) begin
-            case (wave_wr_lane)
-                2'd0: wave_ram[wave_wr_beat_addr][31:0] <= wave_wr_data;
-                2'd1: wave_ram[wave_wr_beat_addr][63:32] <= wave_wr_data;
-                2'd2: wave_ram[wave_wr_beat_addr][95:64] <= wave_wr_data;
-                default: wave_ram[wave_wr_beat_addr][127:96] <= wave_wr_data;
-            endcase
-        end
-    end
+    xpm_memory_sdpram #(
+        .MEMORY_SIZE       (WAVE_MEMORY_BITS),
+        .MEMORY_PRIMITIVE  ("block"),
+        .CLOCKING_MODE     ("independent_clock"),
+        .ECC_MODE          ("no_ecc"),
+        .MEMORY_INIT_FILE  ("none"),
+        .MEMORY_INIT_PARAM ("0"),
+        .USE_MEM_INIT      (0),
+        .WAKEUP_TIME       ("disable_sleep"),
+        .AUTO_SLEEP_TIME   (0),
+        .MESSAGE_CONTROL   (0),
+        .MEMORY_OPTIMIZATION("true"),
+        .CASCADE_HEIGHT    (0),
+        .WRITE_DATA_WIDTH_A(32),
+        .BYTE_WRITE_WIDTH_A(32),
+        .ADDR_WIDTH_A      (WAVE_ADDR_WIDTH),
+        .READ_DATA_WIDTH_B (128),
+        .ADDR_WIDTH_B      (WAVE_BEAT_ADDR_WIDTH),
+        .READ_RESET_VALUE_B("0"),
+        .READ_LATENCY_B    (2),
+        .WRITE_MODE_B      ("no_change")
+    ) u_wave_bram (
+        .sleep          (1'b0),
+        .clka           (wave_clk),
+        .ena            (1'b1),
+        .wea            (wave_mem_wea),
+        .addra          (wave_wr_addr),
+        .dina           (wave_wr_data),
+        .injectsbiterra (1'b0),
+        .injectdbiterra (1'b0),
+        .clkb           (clk),
+        .rstb           (rst[0]),
+        .enb            (wave_mem_rd_en),
+        .regceb         (1'b1),
+        .addrb          (wave_read_beat),
+        .doutb          (wave_mem_dout),
+        .sbiterrb       (),
+        .dbiterrb       ()
+    );
 
     always @(posedge clk) begin
         wave_commit_meta <= {wave_commit_meta[1:0], wave_commit_toggle};
@@ -282,41 +317,39 @@ module pattern_gen_256 #(
             dac1_scale <= cfg_scale1;
             data_out[255:128] <= 128'd0;
             wave_active <= 1'b0;
-            wave_play_beat <= {WAVE_BEAT_ADDR_WIDTH{1'b0}};
+            wave_read_beat <= {WAVE_BEAT_ADDR_WIDTH{1'b0}};
             wave_beat_limit <= {{WAVE_BEAT_ADDR_WIDTH{1'b0}}, 1'b1};
-            wave_rd_word <= 128'd0;
+            wave_rd_valid_pipe <= 2'b00;
             wave_commit_meta <= 3'b000;
         end else begin
+            wave_rd_valid_pipe <= {wave_rd_valid_pipe[0], wave_mem_rd_en};
             if (cfg_valid) begin
                 dac0_phase_inc <= cfg_phase_inc0;
                 dac1_phase_inc <= cfg_phase_inc1;
                 dac0_scale <= cfg_scale0;
                 dac1_scale <= cfg_scale1;
                 wave_active <= 1'b0;
+                wave_rd_valid_pipe <= 2'b00;
             end
             if (wave_commit_seen) begin
                 wave_active <= 1'b1;
-                wave_play_beat <= {WAVE_BEAT_ADDR_WIDTH{1'b0}};
+                wave_read_beat <= {WAVE_BEAT_ADDR_WIDTH{1'b0}};
                 wave_beat_limit <= wave_total_beats;
-                wave_rd_word <= wave_ram[{WAVE_BEAT_ADDR_WIDTH{1'b0}}];
+                wave_rd_valid_pipe <= 2'b00;
             end else if (cfg_valid && cfg_reset_phase) begin
                 dac0_phase <= 32'd0;
                 dac1_phase <= 32'd0;
             end else if (wave_active && (|advance)) begin
-                data_out[255:192] <= {
-                    wave_ch0_sample3, wave_ch0_sample2,
-                    wave_ch0_sample1, wave_ch0_sample0
-                };
-                data_out[191:128] <= {
-                    wave_ch1_sample3, wave_ch1_sample2,
-                    wave_ch1_sample1, wave_ch1_sample0
-                };
-                if ((wave_play_beat + 1'b1) >= wave_beat_limit) begin
-                    wave_play_beat <= {WAVE_BEAT_ADDR_WIDTH{1'b0}};
-                    wave_rd_word <= wave_ram[{WAVE_BEAT_ADDR_WIDTH{1'b0}}];
-                end else begin
-                    wave_play_beat <= wave_play_beat + 1'b1;
-                    wave_rd_word <= wave_ram[wave_play_beat + 1'b1];
+                wave_read_beat <= wave_next_beat;
+                if (wave_word_valid) begin
+                    data_out[255:192] <= {
+                        wave_ch0_sample3, wave_ch0_sample2,
+                        wave_ch0_sample1, wave_ch0_sample0
+                    };
+                    data_out[191:128] <= {
+                        wave_ch1_sample3, wave_ch1_sample2,
+                        wave_ch1_sample1, wave_ch1_sample0
+                    };
                 end
             end else if (advance[0]) begin
                 dac0_phase <= dac0_phase + (dac0_phase_inc << 2);
@@ -345,14 +378,16 @@ module pattern_gen_256 #(
                 dac3_scale <= cfg_scale3;
             end
             if (wave_active && (|advance)) begin
-                data_out[127:64] <= {
-                    wave_ch0_sample3, wave_ch0_sample2,
-                    wave_ch0_sample1, wave_ch0_sample0
-                };
-                data_out[63:0] <= {
-                    wave_ch1_sample3, wave_ch1_sample2,
-                    wave_ch1_sample1, wave_ch1_sample0
-                };
+                if (wave_word_valid) begin
+                    data_out[127:64] <= {
+                        wave_ch0_sample3, wave_ch0_sample2,
+                        wave_ch0_sample1, wave_ch0_sample0
+                    };
+                    data_out[63:0] <= {
+                        wave_ch1_sample3, wave_ch1_sample2,
+                        wave_ch1_sample1, wave_ch1_sample0
+                    };
+                end
             end else if (cfg_valid && cfg_reset_phase) begin
                 dac2_phase <= 32'd0;
                 dac3_phase <= 32'd0;

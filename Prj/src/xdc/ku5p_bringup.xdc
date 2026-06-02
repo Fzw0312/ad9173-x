@@ -34,11 +34,6 @@ set_property PACKAGE_PIN A15 [get_ports dac_sync1_n]
 set_property IOSTANDARD LVDS [get_ports {dac_sync0_p dac_sync0_n dac_sync1_p dac_sync1_n}]
 set_property DIFF_TERM_ADV TERM_100 [get_ports {dac_sync0_p dac_sync0_n dac_sync1_p dac_sync1_n}]
 
-# FPGA -> AD6688 SYNC
-set_property PACKAGE_PIN E21 [get_ports adc_sync_p]
-set_property PACKAGE_PIN D21 [get_ports adc_sync_n]
-set_property IOSTANDARD LVDS [get_ports {adc_sync_p adc_sync_n}]
-
 # HMC7044 SPI
 set_property PACKAGE_PIN H21 [get_ports clock_cs]
 set_property PACKAGE_PIN H22 [get_ports clock_sclk]
@@ -57,15 +52,6 @@ set_property PACKAGE_PIN E17 [get_ports dac_sdo]
 set_property PACKAGE_PIN B22 [get_ports txen_0]
 set_property PACKAGE_PIN C22 [get_ports txen_1]
 set_property IOSTANDARD LVCMOS18 [get_ports {dac_cs dac_sclk dac_sdio dac_sdo txen_0 txen_1}]
-
-# AD6688 SPI + control
-set_property PACKAGE_PIN D26 [get_ports adc_csb]
-set_property PACKAGE_PIN C26 [get_ports adc_sclk]
-set_property PACKAGE_PIN A25 [get_ports adc_sdio]
-set_property PACKAGE_PIN C24 [get_ports adc_pdwn]
-# Board rework note: the original ADC_SDIO net is unusable on this board.
-# GPIO_A1 on FPGA A25 is repurposed as the AD6688 3-wire bidirectional SDIO.
-set_property IOSTANDARD LVCMOS18 [get_ports {adc_csb adc_sclk adc_sdio adc_pdwn}]
 
 # AD9173 JESD TX
 # link0 / lanes0-3 -> quad226 -> DAC_SERDIN0..3
@@ -90,37 +76,7 @@ set_property PACKAGE_PIN D6 [get_ports {dac_tx_n[6]}]
 set_property PACKAGE_PIN B7 [get_ports {dac_tx_p[7]}]
 set_property PACKAGE_PIN B6 [get_ports {dac_tx_n[7]}]
 
-# AD6688 JESD RX netlist evidence.
-# Netlist_ad9173_1_2026-05-27.tel plus the carrier FMC schematic map:
-#   ADC_SERDOUT6_P/N -> FMC DP0_M2C_P/N -> adc_rx[0]
-#   ADC_SERDOUT7_P/N -> FMC DP1_M2C_P/N -> adc_rx[1]
-#   ADC_SERDOUT5_P/N -> FMC DP2_M2C_P/N -> adc_rx[2]
-#   ADC_SERDOUT4_P/N -> FMC DP3_M2C_P/N -> adc_rx[3]
-#   ADC_SERDOUT2_P/N -> FMC DP4_M2C_P/N -> adc_rx[4]
-#   ADC_SERDOUT0_P/N -> FMC DP5_M2C_P/N -> adc_rx[5]
-#   ADC_SERDOUT1_P/N -> FMC DP6_M2C_P/N -> adc_rx[6]
-#   ADC_SERDOUT3_P/N -> FMC DP7_M2C_P/N -> adc_rx[7]
-# AD6688 registers 0x05B2/0x05B3/0x05B5/0x05B6 map those SERDOUTs
-# back to logical lane 0..7, so the PL lane reorder stage is identity.
-# GT pins must not be given a fabric IOSTANDARD constraint.
-set_property PACKAGE_PIN M2 [get_ports {adc_rx_p[0]}]
-set_property PACKAGE_PIN M1 [get_ports {adc_rx_n[0]}]
-set_property PACKAGE_PIN K2 [get_ports {adc_rx_p[1]}]
-set_property PACKAGE_PIN K1 [get_ports {adc_rx_n[1]}]
-set_property PACKAGE_PIN H2 [get_ports {adc_rx_p[2]}]
-set_property PACKAGE_PIN H1 [get_ports {adc_rx_n[2]}]
-set_property PACKAGE_PIN F2 [get_ports {adc_rx_p[3]}]
-set_property PACKAGE_PIN F1 [get_ports {adc_rx_n[3]}]
-set_property PACKAGE_PIN D2 [get_ports {adc_rx_p[4]}]
-set_property PACKAGE_PIN D1 [get_ports {adc_rx_n[4]}]
-set_property PACKAGE_PIN C4 [get_ports {adc_rx_p[5]}]
-set_property PACKAGE_PIN C3 [get_ports {adc_rx_n[5]}]
-set_property PACKAGE_PIN B2 [get_ports {adc_rx_p[6]}]
-set_property PACKAGE_PIN B1 [get_ports {adc_rx_n[6]}]
-set_property PACKAGE_PIN A4 [get_ports {adc_rx_p[7]}]
-set_property PACKAGE_PIN A3 [get_ports {adc_rx_n[7]}]
-
-# PHY1 1G RGMII transmit path for short ADC UDP captures.
+# PHY1 1G RGMII path for UDP DAC configuration and waveform download.
 # RK-XCKU5P-F V1.2 pin table maps these nets to Bank 66; schematic pages
 # show the PHY I/O rail as PHY1_IODVDD with 1.8 V supplies, so constrain as
 # LVCMOS18 for the first PL-only UDP bring-up.

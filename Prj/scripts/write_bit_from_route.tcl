@@ -1,6 +1,6 @@
 set origin_dir [file normalize [file dirname [info script]]]
 set prj_dir    [file normalize [file join $origin_dir ..]]
-set build_root [file normalize [file join $prj_dir .. build vivado ad9173_ad6688]]
+set build_root [file normalize [file join $prj_dir .. build vivado ad9173_dac_only]]
 set build_dir  [file normalize [file join $build_root ku5p_vivado]]
 
 if {[info exists ::env(KU5P_BUILD_ROOT)] && $::env(KU5P_BUILD_ROOT) ne ""} {
@@ -9,8 +9,8 @@ if {[info exists ::env(KU5P_BUILD_ROOT)] && $::env(KU5P_BUILD_ROOT) ne ""} {
 }
 
 set dcp_file [file join $build_dir post_route.dcp]
-set ltx_file [file join $build_dir ku5p_bringup_top.ltx]
-set bit_file [file join $build_dir ku5p_bringup_top.bit]
+set ltx_file [file join $build_dir ku5p_dac_only_top.ltx]
+set bit_file [file join $build_dir ku5p_dac_only_top.bit]
 set run_reports 1
 
 set_param general.maxThreads 1
@@ -42,7 +42,7 @@ if {$run_reports} {
     catch {check_timing -verbose -file [file join $build_dir post_route_reopen_check_timing.rpt]}
     catch {report_drc -file [file join $build_dir post_route_reopen_drc.rpt]}
 }
-write_debug_probes -force $ltx_file
+catch {write_debug_probes -force $ltx_file}
 write_bitstream -force $bit_file
 close_design
 exit

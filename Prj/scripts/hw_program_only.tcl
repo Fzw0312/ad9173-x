@@ -1,6 +1,6 @@
 set origin_dir [file normalize [file dirname [info script]]]
 set prj_dir    [file normalize [file join $origin_dir ..]]
-set build_root [file normalize [file join $prj_dir .. build vivado ad9173_dac_udp]]
+set build_root [file normalize [file join $prj_dir .. build vivado ad9173_dac_only]]
 set build_dir  [file normalize [file join $build_root ku5p_vivado]]
 
 if {[info exists ::env(KU5P_BUILD_ROOT)] && $::env(KU5P_BUILD_ROOT) ne ""} {
@@ -8,8 +8,8 @@ if {[info exists ::env(KU5P_BUILD_ROOT)] && $::env(KU5P_BUILD_ROOT) ne ""} {
     set build_dir  [file normalize [file join $build_root ku5p_vivado]]
 }
 
-set bit_file [file join $build_dir ku5p_bringup_top.bit]
-set ltx_file [file join $build_dir ku5p_bringup_top.ltx]
+set bit_file [file join $build_dir ku5p_dac_only_top.bit]
+set ltx_file [file join $build_dir ku5p_dac_only_top.ltx]
 
 if {[info exists ::env(KU5P_HW_BIT)] && $::env(KU5P_HW_BIT) ne ""} {
     set bit_file [file normalize $::env(KU5P_HW_BIT)]

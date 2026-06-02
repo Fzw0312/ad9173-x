@@ -1,6 +1,6 @@
 set origin_dir [file normalize [file dirname [info script]]]
 set prj_dir    [file normalize [file join $origin_dir ..]]
-set build_root [file normalize [file join $prj_dir .. build vivado ad9173_ad6688]]
+set build_root [file normalize [file join $prj_dir .. build vivado ad9173_dac_only]]
 set build_dir  [file normalize [file join $build_root ku5p_vivado]]
 set stage_dir  [file normalize [file join $build_root stage]]
 set build_jobs 4
@@ -23,50 +23,33 @@ proc stage_file {src dst} {
     return $dst
 }
 
-set xpr_file [file join $build_dir ku5p_bringup.xpr]
+set xpr_file [file join $build_dir ku5p_dac_only.xpr]
 if {![file exists $xpr_file]} {
     error "Existing Vivado project not found: $xpr_file"
 }
 
-stage_file \
-    [file join $prj_dir src rtl common ad6688_lane_reorder.v] \
-    [file join $stage_dir src rtl common ad6688_lane_reorder.v]
-stage_file \
-    [file join $prj_dir src rtl common adc0_sample_packer.v] \
-    [file join $stage_dir src rtl common adc0_sample_packer.v]
-stage_file \
-    [file join $prj_dir src rtl common pattern_gen_256.v] \
-    [file join $stage_dir src rtl common pattern_gen_256.v]
-stage_file \
-    [file join $prj_dir src rtl common rgmii_rx.v] \
-    [file join $stage_dir src rtl common rgmii_rx.v]
-stage_file \
-    [file join $prj_dir src rtl common k5wg_udp_dac_config_rx.v] \
-    [file join $stage_dir src rtl common k5wg_udp_dac_config_rx.v]
-stage_file \
-    [file join $prj_dir src rtl chip ad6688 ad6688_init_table.v] \
-    [file join $stage_dir src rtl chip ad6688 ad6688_init_table.v]
-stage_file \
-    [file join $prj_dir src rtl top ku5p_bringup_top.v] \
-    [file join $stage_dir src rtl top ku5p_bringup_top.v]
-stage_file \
-    [file join $prj_dir src xdc ku5p_bringup.xdc] \
-    [file join $stage_dir src xdc ku5p_bringup.xdc]
+set refresh_files [list \
+    [stage_file [file join $prj_dir src rtl common jesd_phy_tx_axi_init.v] [file join $stage_dir src rtl common jesd_phy_tx_axi_init.v]] \
+    [stage_file [file join $prj_dir src rtl common pattern_gen_256.v]      [file join $stage_dir src rtl common pattern_gen_256.v]] \
+    [stage_file [file join $prj_dir src rtl common rgmii_rx.v]             [file join $stage_dir src rtl common rgmii_rx.v]] \
+    [stage_file [file join $prj_dir src rtl common k5wg_udp_dac_config_rx.v] [file join $stage_dir src rtl common k5wg_udp_dac_config_rx.v]] \
+    [stage_file [file join $prj_dir src rtl top ku5p_bringup_top.v]        [file join $stage_dir src rtl top ku5p_bringup_top.v]] \
+]
+
+set xdc_file [stage_file [file join $prj_dir src xdc ku5p_bringup.xdc] \
+                         [file join $stage_dir src xdc ku5p_bringup.xdc]]
 
 cd $build_dir
 set_param general.maxThreads $build_jobs
 open_project $xpr_file
-set reorder_stage_file [file join $stage_dir src rtl common ad6688_lane_reorder.v]
-if {[llength [get_files -quiet $reorder_stage_file]] == 0} {
-    add_files -norecurse $reorder_stage_file
-}
-foreach extra_stage_file [list \
-    [file join $stage_dir src rtl common rgmii_rx.v] \
-    [file join $stage_dir src rtl common k5wg_udp_dac_config_rx.v] \
-] {
-    if {[llength [get_files -quiet $extra_stage_file]] == 0} {
-        add_files -norecurse $extra_stage_file
+set_property XPM_LIBRARIES {XPM_CDC XPM_MEMORY} [current_project]
+foreach refresh_file $refresh_files {
+    if {[llength [get_files -quiet $refresh_file]] == 0} {
+        add_files -norecurse $refresh_file
     }
+}
+if {[llength [get_files -quiet $xdc_file]] == 0} {
+    add_files -fileset constrs_1 -norecurse $xdc_file
 }
 update_compile_order -fileset sources_1
 

@@ -1,6 +1,6 @@
 set origin_dir [file normalize [file dirname [info script]]]
 set prj_dir    [file normalize [file join $origin_dir ..]]
-set build_root [file normalize [file join $prj_dir .. build vivado ad9173_dac_udp]]
+set build_root [file normalize [file join $prj_dir .. build vivado ad9173_dac_only]]
 set build_dir  [file normalize [file join $build_root ku5p_vivado]]
 set stage_dir  [file normalize [file join $build_root stage]]
 set ip_dir     [file normalize [file join $build_dir ip]]
@@ -9,7 +9,7 @@ set build_stage bit
 
 if {[info exists ::env(KU5P_PRJ_DIR)] && $::env(KU5P_PRJ_DIR) ne ""} {
     set prj_dir [file normalize $::env(KU5P_PRJ_DIR)]
-    set build_root [file normalize [file join $prj_dir .. build vivado ad9173_dac_udp]]
+    set build_root [file normalize [file join $prj_dir .. build vivado ad9173_dac_only]]
     set build_dir  [file normalize [file join $build_root ku5p_vivado]]
     set stage_dir  [file normalize [file join $build_root stage]]
     set ip_dir     [file normalize [file join $build_dir ip]]
@@ -58,16 +58,12 @@ set rtl_files [list \
     [stage_file [file join $prj_dir src rtl common spi_init_engine.v]             [file join $stage_dir src rtl common spi_init_engine.v]] \
     [stage_file [file join $prj_dir src rtl common spi_read_master_4wire.v]       [file join $stage_dir src rtl common spi_read_master_4wire.v]] \
     [stage_file [file join $prj_dir src rtl common spi_read_master_3wire.v]       [file join $stage_dir src rtl common spi_read_master_3wire.v]] \
-    [stage_file [file join $prj_dir src rtl common adi_spi_master.v]              [file join $stage_dir src rtl common adi_spi_master.v]] \
     [stage_file [file join $prj_dir src rtl common axi_lite_write_master.v]       [file join $stage_dir src rtl common axi_lite_write_master.v]] \
-    [stage_file [file join $prj_dir src rtl common axi_lite_rdwr_master.v]        [file join $stage_dir src rtl common axi_lite_rdwr_master.v]] \
     [stage_file [file join $prj_dir src rtl common axi_lite_init_engine.v]        [file join $stage_dir src rtl common axi_lite_init_engine.v]] \
-    [stage_file [file join $prj_dir src rtl common jesd_tx_axi_probe.v]           [file join $stage_dir src rtl common jesd_tx_axi_probe.v]] \
-    [stage_file [file join $prj_dir src rtl common jesd_phy_axi_probe.v]          [file join $stage_dir src rtl common jesd_phy_axi_probe.v]] \
+    [stage_file [file join $prj_dir src rtl common jesd_phy_tx_axi_init.v]        [file join $stage_dir src rtl common jesd_phy_tx_axi_init.v]] \
     [stage_file [file join $prj_dir src rtl common jesd_clock.v]                  [file join $stage_dir src rtl common jesd_clock.v]] \
     [stage_file [file join $prj_dir src rtl common pattern_gen_256.v]             [file join $stage_dir src rtl common pattern_gen_256.v]] \
     [stage_file [file join $prj_dir src rtl common tx_mapper.v]                   [file join $stage_dir src rtl common tx_mapper.v]] \
-    [stage_file [file join $prj_dir src rtl common eth_crc32_byte.v]              [file join $stage_dir src rtl common eth_crc32_byte.v]] \
     [stage_file [file join $prj_dir src rtl common k5wg_udp_dac_config_rx.v]      [file join $stage_dir src rtl common k5wg_udp_dac_config_rx.v]] \
     [stage_file [file join $prj_dir src rtl common eth_clk_125.v]                 [file join $stage_dir src rtl common eth_clk_125.v]] \
     [stage_file [file join $prj_dir src rtl common rgmii_tx.v]                    [file join $stage_dir src rtl common rgmii_tx.v]] \
@@ -76,19 +72,18 @@ set rtl_files [list \
     [stage_file [file join $prj_dir src rtl chip hmc7044 hmc7044_init.v]          [file join $stage_dir src rtl chip hmc7044 hmc7044_init.v]] \
     [stage_file [file join $prj_dir src rtl chip ad9173 ad9173_init_table.v]      [file join $stage_dir src rtl chip ad9173 ad9173_init_table.v]] \
     [stage_file [file join $prj_dir src rtl chip ad9173 ad9173_init.v]            [file join $stage_dir src rtl chip ad9173 ad9173_init.v]] \
-    [stage_file [file join $prj_dir src rtl chip ad9173 ad9173_link_diag.v]       [file join $stage_dir src rtl chip ad9173 ad9173_link_diag.v]] \
     [stage_file [file join $prj_dir src rtl chip jesd jesd204_tx_init_table_link0.v] [file join $stage_dir src rtl chip jesd jesd204_tx_init_table_link0.v]] \
     [stage_file [file join $prj_dir src rtl chip jesd jesd204_tx_init_table_link1.v] [file join $stage_dir src rtl chip jesd jesd204_tx_init_table_link1.v]] \
     [stage_file [file join $prj_dir src rtl chip jesd jesd204_tx_init_link0.v]    [file join $stage_dir src rtl chip jesd jesd204_tx_init_link0.v]] \
     [stage_file [file join $prj_dir src rtl chip jesd jesd204_tx_init_link1.v]    [file join $stage_dir src rtl chip jesd jesd204_tx_init_link1.v]] \
-    [stage_file [file join $prj_dir src rtl stub dac_only_unused_stubs.v]         [file join $stage_dir src rtl stub dac_only_unused_stubs.v]] \
     [stage_file [file join $prj_dir src rtl top ku5p_bringup_top.v]               [file join $stage_dir src rtl top ku5p_bringup_top.v]] \
 ]
 
 set xdc_file [stage_file [file join $prj_dir src xdc ku5p_bringup.xdc] [file join $stage_dir src xdc ku5p_bringup.xdc]]
 
-create_project ku5p_bringup_dac_udp $build_dir -part xcku5p-ffvb676-2-i -force
+create_project ku5p_dac_only $build_dir -part xcku5p-ffvb676-2-i -force
 set_property target_language Verilog [current_project]
+set_property XPM_LIBRARIES {XPM_CDC XPM_MEMORY} [current_project]
 set_property top ku5p_bringup_top [current_fileset]
 set_param general.maxThreads $build_jobs
 
@@ -227,6 +222,6 @@ if {$build_stage eq "route"} {
     exit
 }
 
-write_bitstream -force [file join $build_dir ku5p_bringup_top.bit]
+write_bitstream -force [file join $build_dir ku5p_dac_only_top.bit]
 close_project
 exit
