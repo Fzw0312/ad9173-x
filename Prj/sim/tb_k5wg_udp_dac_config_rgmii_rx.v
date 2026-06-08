@@ -2,6 +2,8 @@
 
 module tb_k5wg_udp_dac_config_rgmii_rx;
 
+    localparam integer WAVE_ADDR_WIDTH = 15;
+
     reg clk = 1'b0;
     reg tx_clk_90 = 1'b0;
     reg rst = 1'b1;
@@ -16,6 +18,8 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
     wire rx_error;
     wire cfg_valid;
     wire cfg_reset_phase;
+    wire cfg_nco_only;
+    wire cfg_ram_mode;
     wire [47:0] cfg_phase_inc0;
     wire [47:0] cfg_phase_inc1;
     wire [47:0] cfg_phase_inc2;
@@ -24,10 +28,13 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
     wire [15:0] cfg_scale1;
     wire [15:0] cfg_scale2;
     wire [15:0] cfg_scale3;
+    wire [47:0] cfg_main_nco_ftw;
+    wire [6:0] cfg_rf_atten_code;
+    wire cfg_output_path_sel;
     wire wave_wr_en;
-    wire [11:0] wave_wr_addr;
+    wire [WAVE_ADDR_WIDTH-1:0] wave_wr_addr;
     wire [31:0] wave_wr_data;
-    wire [12:0] wave_total_samples;
+    wire [WAVE_ADDR_WIDTH:0] wave_total_samples;
     wire wave_commit_toggle;
     wire [31:0] packet_count;
     wire [31:0] config_count;
@@ -69,7 +76,8 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
 
     k5wg_udp_dac_config_rx #(
         .FPGA_IP(32'hC0A8_010A),
-        .UDP_PORT(16'd5005)
+        .UDP_PORT(16'd5005),
+        .WAVE_ADDR_WIDTH(WAVE_ADDR_WIDTH)
     ) u_parser (
         .clk            (clk),
         .rst            (rst),
@@ -78,6 +86,8 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
         .rx_error       (rx_error),
         .cfg_valid      (cfg_valid),
         .cfg_reset_phase(cfg_reset_phase),
+        .cfg_nco_only   (cfg_nco_only),
+        .cfg_ram_mode   (cfg_ram_mode),
         .cfg_phase_inc0 (cfg_phase_inc0),
         .cfg_phase_inc1 (cfg_phase_inc1),
         .cfg_phase_inc2 (cfg_phase_inc2),
@@ -86,6 +96,9 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
         .cfg_scale1     (cfg_scale1),
         .cfg_scale2     (cfg_scale2),
         .cfg_scale3     (cfg_scale3),
+        .cfg_main_nco_ftw(cfg_main_nco_ftw),
+        .cfg_rf_atten_code(cfg_rf_atten_code),
+        .cfg_output_path_sel(cfg_output_path_sel),
         .wave_wr_en     (wave_wr_en),
         .wave_wr_addr   (wave_wr_addr),
         .wave_wr_data   (wave_wr_data),
@@ -107,6 +120,7 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
         repeat (40) @(posedge clk);
 
         if (!seen_cfg ||
+            !cfg_ram_mode ||
             cfg_phase_inc0 != 48'h010203040506 ||
             cfg_phase_inc1 != 48'h112233445566 ||
             cfg_phase_inc2 != 48'h5566778899aa ||
@@ -114,9 +128,12 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
             cfg_scale0 != 16'h1111 ||
             cfg_scale1 != 16'h2222 ||
             cfg_scale2 != 16'h3333 ||
-            cfg_scale3 != 16'h4444) begin
-            $display("ERROR: RGMII decoded config mismatch seen=%b status=%08x cfgs=%0d drops=%0d inc=%08x/%08x/%08x/%08x",
-                     seen_cfg, status_dbg, config_count, drop_count,
+            cfg_scale3 != 16'h4444 ||
+            cfg_main_nco_ftw != 48'he31155555555 ||
+            cfg_rf_atten_code != 7'h55 ||
+            cfg_output_path_sel != 1'b1) begin
+            $display("ERROR: RGMII decoded config mismatch seen=%b ram=%b status=%08x cfgs=%0d drops=%0d inc=%08x/%08x/%08x/%08x",
+                     seen_cfg, cfg_ram_mode, status_dbg, config_count, drop_count,
                      cfg_phase_inc0, cfg_phase_inc1,
                      cfg_phase_inc2, cfg_phase_inc3);
             $finish;
@@ -158,7 +175,6 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
             send_eth_ip_udp_header;
             send_k5wg_header;
             send_k5dc_payload;
-            send_word32_le(32'h12345678);
             @(posedge clk);
             tx_valid <= 1'b0;
             tx_data <= 8'd0;
@@ -194,7 +210,7 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
             send_byte(8'h1c); send_byte(8'h00);
             send_word32_le(32'd2);
             send_word32_le(32'd0);
-            send_word32_le(32'd48);
+            send_word32_le(32'd52);
             send_word32_le(32'd0);
             send_word32_le(32'd0);
         end
@@ -204,7 +220,7 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
         begin
             send_byte(8'h4b); send_byte(8'h35); send_byte(8'h44); send_byte(8'h43);
             send_byte(8'h01);
-            send_byte(8'h01);
+            send_byte(8'h05);
             send_byte(8'h0f); send_byte(8'h00);
             send_byte(8'h00); send_byte(8'h00); send_byte(8'h9b); send_byte(8'h3a);
             send_word48_le(48'h010203040506);
@@ -215,7 +231,10 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
             send_word16_le(16'h2222);
             send_word16_le(16'h3333);
             send_word16_le(16'h4444);
-            send_word32_le(32'd0);
+            send_word32_le(32'h55555555);
+            send_byte(8'h55);
+            send_byte(8'h01);
+            send_word16_le(16'he311);
         end
     endtask
 

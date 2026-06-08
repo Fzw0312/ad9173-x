@@ -1,3 +1,9 @@
+// FPGA JESD/GT 参考时钟缓冲模块。
+//
+// HMC7044 ch10(BR40_P/N) 输出 245.76 MHz 到 FPGA GBTCLK 引脚。
+// 这里使用 IBUFDS_GTE4 接入 GT refclk，同时通过 BUFG_GT 给 JESD core
+// 作为 tx_core_clk/user clock。该时钟与 build_dac_udp.tcl 中的
+// GT_REFCLK_FREQ=245.76 MHz 保持一致。
 module jesd_clock (
     input  wire refclk_pad_n,
     input  wire refclk_pad_p,
@@ -10,8 +16,8 @@ module jesd_clock (
     wire refclk_div2_i;
     wire coreclk_i;
 
-    // BR40 is already programmed to 245.76 MHz. Keep ODIV2 in the default
-    // no-divide mode so the JESD core/user clock stays at 245.76 MHz.
+    // BR40 已由 HMC7044 配置为 245.76 MHz。这里保持 ODIV2 不分频，
+    // 让 JESD core/user clock 也工作在 245.76 MHz。
     IBUFDS_GTE4 #(
         .REFCLK_EN_TX_PATH(1'b0),
         .REFCLK_HROW_CK_SEL(2'b00),

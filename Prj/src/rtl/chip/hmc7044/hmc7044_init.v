@@ -1,3 +1,13 @@
+// HMC7044 初始化执行模块。
+//
+// 作用：
+// 1. 按 hmc7044_init_table.v 的寄存器表，通过 3-wire SPI 写 HMC7044。
+// 2. 写完后轮询 PLL1/PLL2/告警/FSM 状态，确认时钟芯片真正锁定。
+// 3. 回读关键输出通道寄存器，确认 DAC_CLKIN、SYSREF、FPGA JESD refclk
+//    这些关键时钟输出配置没有写错。
+//
+// 注意：这里不生成时钟，只配置外部 HMC7044 芯片；FPGA 内部只看到
+// HMC7044 输出到引脚上的 jesd_refclk/sysref。
 module hmc7044_init #(
     parameter integer CLK_DIV  = 32,
     parameter integer MS_TICKS = 100000
@@ -49,9 +59,8 @@ module hmc7044_init #(
     localparam [4:0] ST_DONE         = 5'd15;
     localparam [4:0] ST_FAIL         = 5'd16;
 
-    // PLL1 lock detect can assert well after restart and reference switchover.
-    // Keep polling for up to 10 s so bring-up does not falsely fail while PLL1
-    // is still in acquisition.
+    // PLL1 在重启和参考源切换后可能需要较长时间才上锁。
+    // 这里最多轮询 10 s，避免 PLL1 仍在捕获过程中就误判启动失败。
     localparam [13:0] MAX_RETRY = 14'd10000;
 
     wire [7:0]  table_addr;
@@ -153,6 +162,9 @@ module hmc7044_init #(
         .sdio_oe(read_sdio_oe)
     );
 
+    // verify_index 逐项选择需要回读验证的寄存器。
+    // verify_group_sel 用于把错误归类到不同输出组，方便 ILA/VIO 查看
+    // 是 PLL 配置、DAC_CLKIN、SYSREF 还是 FPGA JESD refclk 相关寄存器出错。
     always @(*) begin
         verify_addr_sel   = 16'h0005;
         verify_expect_sel = 8'h01;
@@ -244,6 +256,11 @@ module hmc7044_init #(
             read_start  <= 1'b0;
             done        <= 1'b0;
 
+            // 启动流程：
+            // ST_RUN_TABLE    : 按表写完整套 HMC7044 配置
+            // ST_PLL*_WAIT    : 轮询 PLL/告警/FSM 状态，确认锁定
+            // ST_VERIFY_*     : 回读关键寄存器，确认输出通道配置
+            // ST_DONE/ST_FAIL : 给顶层状态机返回成功或失败
             case (state)
                 ST_IDLE: begin
                     busy         <= 1'b0;

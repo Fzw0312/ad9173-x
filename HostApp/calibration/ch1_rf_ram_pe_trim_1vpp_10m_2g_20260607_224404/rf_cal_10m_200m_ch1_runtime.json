@@ -1,0 +1,5817 @@
+{
+  "version": 1,
+  "created_at": "20260605_212701",
+  "source_raw_file": "D:\\FPGA\\ku5P\\ad9173-x\\HostApp\\calibration\\ch1_rf_10m_200m_20260605_212254\\rf_cal_10m_200m_ch1_raw.json",
+  "path": "ch1_rf_dac0_hmc788_pe43711",
+  "channel": "CH1",
+  "frequency_range_hz": [
+    10000000.0,
+    2000000000.0
+  ],
+  "amplitude_unit": "Vpk",
+  "display_amplitude_unit": "Vpp",
+  "nco_hz": 1474561031.9672773,
+  "preferred_amp_code": 16588,
+  "preferred_dac_scale_ratio": 0.8,
+  "nco_max_amp_code": 20735,
+  "pe43711_step_db": 0.25,
+  "pe43711_max_code": 127,
+  "pe43711_max_atten_db": 31.75,
+  "points": [
+    {
+      "freq_hz": 10000000.0,
+      "raw_vpk": 1.6,
+      "measured_freq_hz": 9999999.999999909,
+      "amp_code": 16588,
+      "pe43711_code": 0,
+      "ftw": "0x01BC71B2BA02",
+      "raw_vpp": 3.2,
+      "raw_dbvpk": 4.082399653118496
+    },
+    {
+      "freq_hz": 15000000.0,
+      "raw_vpk": 2.02,
+      "measured_freq_hz": 14999999.999999864,
+      "amp_code": 16588,
+      "pe43711_code": 0,
+      "ftw": "0x029AAA8C1702",
+      "raw_vpp": 4.04,
+      "raw_dbvpk": 6.107027388932476
+    },
+    {
+      "freq_hz": 20000000.0,
+      "raw_vpk": 2.22,
+      "measured_freq_hz": 19999999.999999817,
+      "amp_code": 16588,
+      "pe43711_code": 0,
+      "ftw": "0x0378E3657403",
+      "raw_vpp": 4.44,
+      "raw_dbvpk": 6.927059489012773
+    },
+    {
+      "freq_hz": 30000000.0,
+      "raw_vpk": 2.42,
+      "measured_freq_hz": 29999999.999999728,
+      "amp_code": 16588,
+      "pe43711_code": 0,
+      "ftw": "0x053555182E05",
+      "raw_vpp": 4.84,
+      "raw_dbvpk": 7.676307319608625
+    },
+    {
+      "freq_hz": 40000000.0,
+      "raw_vpk": 2.48,
+      "measured_freq_hz": 39999999.999999635,
+      "amp_code": 16588,
+      "pe43711_code": 0,
+      "ftw": "0x06F1C6CAE806",
+      "raw_vpp": 4.96,
+      "raw_dbvpk": 7.889033616524326
+    },
+    {
+      "freq_hz": 50000000.0,
+      "raw_vpk": 2.52,
+      "measured_freq_hz": 49999999.999999546,
+      "amp_code": 16588,
+      "pe43711_code": 0,
+      "ftw": "0x08AE387DA208",
+      "raw_vpp": 5.04,
+      "raw_dbvpk": 8.028010815630882
+    },
+    {
+      "freq_hz": 70000000.0,
+      "raw_vpk": 2.54,
+      "measured_freq_hz": 69999999.99999936,
+      "amp_code": 16588,
+      "pe43711_code": 0,
+      "ftw": "0x0C271BE3160B",
+      "raw_vpp": 5.08,
+      "raw_dbvpk": 8.096674332398761
+    },
+    {
+      "freq_hz": 100000000.0,
+      "raw_vpk": 2.5,
+      "measured_freq_hz": 99999999.99999909,
+      "amp_code": 16588,
+      "pe43711_code": 0,
+      "ftw": "0x115C70FB4410",
+      "raw_vpp": 5.0,
+      "raw_dbvpk": 7.958800173440752
+    },
+    {
+      "freq_hz": 130000000.0,
+      "raw_vpk": 2.38,
+      "measured_freq_hz": 129999999.99999882,
+      "amp_code": 16588,
+      "pe43711_code": 0,
+      "ftw": "0x1691C6137215",
+      "raw_vpp": 4.76,
+      "raw_dbvpk": 7.531539141130239
+    },
+    {
+      "freq_hz": 160000000.0,
+      "raw_vpk": 2.18,
+      "measured_freq_hz": 160000000.0000007,
+      "amp_code": 16588,
+      "pe43711_code": 0,
+      "ftw": "0x1BC71B2BA019",
+      "raw_vpp": 4.36,
+      "raw_dbvpk": 6.769129872092097
+    },
+    {
+      "freq_hz": 180000000.0,
+      "raw_vpk": 2.0601000000000003,
+      "measured_freq_hz": 180000000.00000077,
+      "amp_code": 16588,
+      "pe43711_code": 0,
+      "ftw": "0x1F3FFE91141C",
+      "raw_vpp": 4.1202000000000005,
+      "raw_dbvpk": 6.2777660422773565
+    },
+    {
+      "freq_hz": 200000000.0,
+      "raw_vpk": 2.06,
+      "measured_freq_hz": 200000000.00000086,
+      "amp_code": 16588,
+      "pe43711_code": 0,
+      "ftw": "0x22B8E1F68820",
+      "raw_vpp": 4.12,
+      "raw_dbvpk": 6.277344407383069
+    }
+  ],
+  "runtime_algorithm": {
+    "target_vpk": "clamp requested amplitude in Vpk",
+    "raw_vpk": "interpolate points in dB over frequency",
+    "need_atten_db": "20*log10(raw_vpk/target_vpk)",
+    "pe_code": "clamp(round(need_atten_db/0.25),0,127)",
+    "amp_code": "round(preferred_amp_code * target_vpk * 10**(pe_code*0.25/20) / raw_vpk)"
+  },
+  "notes": [
+    "Raw sweep used amp_code=0x40CC and PE43711 code=0x00.",
+    "20 MHz captured Vpp is expected to read about 4.56 Vpp, matching front-panel 4.6 Vpp.",
+    "20260607: Added high-frequency PE43711-only flatness trim. <=200 MHz keeps existing amplitude calibration; >200 MHz changes only PE43711 attenuation code after amp_code calculation.",
+    "2026-06-07: flattened RF 200 MHz-1 GHz calibration to 200 MHz PE43711 trim standard.",
+    "2026-06-07: Added RAM-waveform-only PE43711 trim from spectrum analyzer power table; target is 1.000 Vpp into 50 ohm (3.979 dBm), no external 20 dB attenuation."
+  ],
+  "amplitude_corrections": [
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 1.0,
+      "measured_vpp": 0.993,
+      "correction_factor": 1.0070493454179255,
+      "source": "manual_front_panel",
+      "created_at": "20260605_manual_20m_1vpp"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 1.0,
+      "measured_vpp": 0.98,
+      "correction_factor": 1.0204081632653061,
+      "source": "manual_front_panel",
+      "created_at": "20260605_manual_200m_1vpp"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 3.0,
+      "measured_vpp": 3.067,
+      "correction_factor": 0.9781545484186501,
+      "source": "manual_front_panel",
+      "created_at": "20260605_manual_10m_3vpp"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.4,
+      "correction_factor": 1.2056016597604386,
+      "old_correction_factor": 1.2056016597604386,
+      "error_pct_before": 0.0,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.395,
+      "correction_factor": 1.2363883138258283,
+      "old_correction_factor": 1.2209334599030053,
+      "error_pct_before": -1.2499999999999956,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.395,
+      "correction_factor": 1.361895055654487,
+      "old_correction_factor": 1.344871367458806,
+      "error_pct_before": -1.2499999999999956,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.395,
+      "correction_factor": 1.4773342736982644,
+      "old_correction_factor": 1.458867595277036,
+      "error_pct_before": -1.2499999999999956,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.395,
+      "correction_factor": 1.3398892768071382,
+      "old_correction_factor": 1.3231406608470488,
+      "error_pct_before": -1.2499999999999956,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.405,
+      "correction_factor": 1.2511443439258503,
+      "old_correction_factor": 1.2667836482249235,
+      "error_pct_before": 1.2499999999999956,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 0.6,
+      "measured_vpp": 0.6,
+      "correction_factor": 1.2056016597604386,
+      "old_correction_factor": 1.2056016597604386,
+      "error_pct_before": 0.0,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 0.6,
+      "measured_vpp": 0.59,
+      "correction_factor": 1.2416272473589884,
+      "old_correction_factor": 1.2209334599030053,
+      "error_pct_before": -1.6666666666666718,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 0.6,
+      "measured_vpp": 0.595,
+      "correction_factor": 1.356172807521485,
+      "old_correction_factor": 1.344871367458806,
+      "error_pct_before": -0.8333333333333304,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.6,
+      "measured_vpp": 0.59,
+      "correction_factor": 1.4835941646885111,
+      "old_correction_factor": 1.458867595277036,
+      "error_pct_before": -1.6666666666666718,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.6,
+      "measured_vpp": 0.59,
+      "correction_factor": 1.3455667737427615,
+      "old_correction_factor": 1.3231406608470488,
+      "error_pct_before": -1.6666666666666718,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.6,
+      "measured_vpp": 0.605,
+      "correction_factor": 1.2563143618759571,
+      "old_correction_factor": 1.2667836482249235,
+      "error_pct_before": 0.8333333333333304,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 0.8,
+      "measured_vpp": 0.8,
+      "correction_factor": 1.2056016597604386,
+      "old_correction_factor": 1.2056016597604386,
+      "error_pct_before": 0.0,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 0.8,
+      "measured_vpp": 0.79,
+      "correction_factor": 1.2363883138258283,
+      "old_correction_factor": 1.2209334599030053,
+      "error_pct_before": -1.2499999999999956,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 0.8,
+      "measured_vpp": 0.795,
+      "correction_factor": 1.3533296779459683,
+      "old_correction_factor": 1.344871367458806,
+      "error_pct_before": -0.6249999999999978,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.8,
+      "measured_vpp": 0.785,
+      "correction_factor": 1.4867440461422023,
+      "old_correction_factor": 1.458867595277036,
+      "error_pct_before": -1.8750000000000044,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.8,
+      "measured_vpp": 0.785,
+      "correction_factor": 1.348423603411005,
+      "old_correction_factor": 1.3231406608470488,
+      "error_pct_before": -1.8750000000000044,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.8,
+      "measured_vpp": 0.81,
+      "correction_factor": 1.2511443439258503,
+      "old_correction_factor": 1.2667836482249235,
+      "error_pct_before": 1.2499999999999956,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 1.0,
+      "measured_vpp": 1.005,
+      "correction_factor": 1.1996036415526754,
+      "old_correction_factor": 1.2056016597604386,
+      "error_pct_before": 0.49999999999998934,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 1.0,
+      "measured_vpp": 0.99,
+      "correction_factor": 1.233266121114147,
+      "old_correction_factor": 1.2209334599030053,
+      "error_pct_before": -1.0000000000000009,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 1.0,
+      "measured_vpp": 1.0,
+      "correction_factor": 1.344871367458806,
+      "old_correction_factor": 1.344871367458806,
+      "error_pct_before": 0.0,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 1.0,
+      "measured_vpp": 0.995,
+      "correction_factor": 1.4661985882181265,
+      "old_correction_factor": 1.458867595277036,
+      "error_pct_before": -0.5000000000000004,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 1.0,
+      "measured_vpp": 0.99,
+      "correction_factor": 1.336505718027322,
+      "old_correction_factor": 1.3231406608470488,
+      "error_pct_before": -1.0000000000000009,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 1.0,
+      "measured_vpp": 1.01,
+      "correction_factor": 1.254241235866261,
+      "old_correction_factor": 1.2667836482249235,
+      "error_pct_before": 1.0000000000000009,
+      "source": "mid_amp_150mVdiv_scope_sweep",
+      "created_at": "20260606_132209"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.198,
+      "correction_factor": 1.2177794543034735,
+      "old_correction_factor": 1.2056016597604386,
+      "error_pct_before": -1.0000000000000009,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.196,
+      "correction_factor": 1.2616207283937024,
+      "old_correction_factor": 1.2363883138258283,
+      "error_pct_before": -2.0000000000000018,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.198,
+      "correction_factor": 1.375651571368169,
+      "old_correction_factor": 1.361895055654487,
+      "error_pct_before": -1.0000000000000009,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.196,
+      "correction_factor": 1.507483952753331,
+      "old_correction_factor": 1.4773342736982644,
+      "error_pct_before": -2.0000000000000018,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.194,
+      "correction_factor": 1.3813291513475654,
+      "old_correction_factor": 1.3398892768071382,
+      "error_pct_before": -3.0000000000000027,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.194,
+      "correction_factor": 1.2898395298204643,
+      "old_correction_factor": 1.2511443439258503,
+      "error_pct_before": -3.0000000000000027,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 0.3,
+      "measured_vpp": 0.296,
+      "correction_factor": 1.2218935740815258,
+      "old_correction_factor": 1.2056016597604386,
+      "error_pct_before": -1.3333333333333308,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 0.3,
+      "measured_vpp": 0.296,
+      "correction_factor": 1.253096264012664,
+      "old_correction_factor": 1.2363883138258283,
+      "error_pct_before": -1.3333333333333308,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 0.3,
+      "measured_vpp": 0.296,
+      "correction_factor": 1.3802990428930613,
+      "old_correction_factor": 1.361895055654487,
+      "error_pct_before": -1.3333333333333308,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.3,
+      "measured_vpp": 0.3,
+      "correction_factor": 1.4773342736982644,
+      "old_correction_factor": 1.4773342736982644,
+      "error_pct_before": 0.0,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.3,
+      "measured_vpp": 0.29,
+      "correction_factor": 1.3860923553177293,
+      "old_correction_factor": 1.3398892768071382,
+      "error_pct_before": -3.3333333333333326,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.3,
+      "measured_vpp": 0.296,
+      "correction_factor": 1.2680516999248483,
+      "old_correction_factor": 1.2511443439258503,
+      "error_pct_before": -1.3333333333333308,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.394,
+      "correction_factor": 1.2239610758989223,
+      "old_correction_factor": 1.2056016597604386,
+      "error_pct_before": -1.5000000000000013,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.394,
+      "correction_factor": 1.255216562259724,
+      "old_correction_factor": 1.2363883138258283,
+      "error_pct_before": -1.5000000000000013,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.396,
+      "correction_factor": 1.375651571368169,
+      "old_correction_factor": 1.361895055654487,
+      "error_pct_before": -1.0000000000000009,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.398,
+      "correction_factor": 1.484758064018356,
+      "old_correction_factor": 1.4773342736982644,
+      "error_pct_before": -0.5000000000000004,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.388,
+      "correction_factor": 1.3813291513475654,
+      "old_correction_factor": 1.3398892768071382,
+      "error_pct_before": -3.0000000000000027,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.39,
+      "correction_factor": 1.2832249681290773,
+      "old_correction_factor": 1.2511443439258503,
+      "error_pct_before": -2.500000000000002,
+      "source": "low_amp_60mVdiv_scope_sweep",
+      "created_at": "20260606_134013"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.20266666666666666,
+      "correction_factor": 1.4876486375855242,
+      "old_correction_factor": 1.507483952753331,
+      "error_pct_before": 1.3333333333333197,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.20053333333333334,
+      "correction_factor": 1.3776554036046198,
+      "old_correction_factor": 1.3813291513475654,
+      "error_pct_before": 0.2666666666666595,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 166000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.20853333333333332,
+      "correction_factor": 1.2960686603686018,
+      "old_correction_factor": 1.351367589877662,
+      "error_pct_before": 4.266666666666663,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 180000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.21333333333333332,
+      "correction_factor": 1.242927341416807,
+      "old_correction_factor": 1.3257891641779271,
+      "error_pct_before": 6.666666666666643,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 197000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.20746666666666663,
+      "correction_factor": 1.2485592682130808,
+      "old_correction_factor": 1.2951721475597022,
+      "error_pct_before": 3.7333333333332996,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.2006666666666667,
+      "correction_factor": 1.2855543486582701,
+      "old_correction_factor": 1.2898395298204643,
+      "error_pct_before": 0.33333333333334103,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.3,
+      "measured_vpp": 0.3005333333333333,
+      "correction_factor": 1.4747125624760848,
+      "old_correction_factor": 1.4773342736982644,
+      "error_pct_before": 0.1777777777777878,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.3,
+      "measured_vpp": 0.30373333333333336,
+      "correction_factor": 1.3690552236456939,
+      "old_correction_factor": 1.3860923553177293,
+      "error_pct_before": 1.244444444444448,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 166000000.0,
+      "target_vpp": 0.3,
+      "measured_vpp": 0.312,
+      "correction_factor": 1.2953560639667332,
+      "old_correction_factor": 1.3471703065254026,
+      "error_pct_before": 4.0000000000000036,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 180000000.0,
+      "target_vpp": 0.3,
+      "measured_vpp": 0.31839999999999996,
+      "correction_factor": 1.2382401086224302,
+      "old_correction_factor": 1.3141855019512725,
+      "error_pct_before": 6.133333333333324,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 197000000.0,
+      "target_vpp": 0.3,
+      "measured_vpp": 0.30666666666666664,
+      "correction_factor": 1.2471574606578057,
+      "old_correction_factor": 1.274872070894646,
+      "error_pct_before": 2.2222222222222143,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.3,
+      "measured_vpp": 0.3025333333333334,
+      "correction_factor": 1.2574333736583994,
+      "old_correction_factor": 1.2680516999248483,
+      "error_pct_before": 0.8444444444444699,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.40240000000000004,
+      "correction_factor": 1.4759026481295785,
+      "old_correction_factor": 1.484758064018356,
+      "error_pct_before": 0.6000000000000005,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.4056,
+      "correction_factor": 1.3622575457076582,
+      "old_correction_factor": 1.3813291513475654,
+      "error_pct_before": 1.4000000000000012,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 166000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.4196,
+      "correction_factor": 1.2861259134745444,
+      "old_correction_factor": 1.349146083234797,
+      "error_pct_before": 4.899999999999993,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 180000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.42906666666666665,
+      "correction_factor": 1.2321831518923008,
+      "old_correction_factor": 1.3217217942631412,
+      "error_pct_before": 7.266666666666666,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 197000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.4169333333333333,
+      "correction_factor": 1.236581984981703,
+      "old_correction_factor": 1.2889306223459283,
+      "error_pct_before": 4.233333333333333,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.4,
+      "measured_vpp": 0.404,
+      "correction_factor": 1.270519770424829,
+      "old_correction_factor": 1.2832249681290773,
+      "error_pct_before": 1.0000000000000009,
+      "samples": 15,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 2.5,
+      "measured_vpp": 2.5851111111111114,
+      "correction_factor": 1.271770778009367,
+      "old_correction_factor": 1.3150675076073748,
+      "error_pct_before": 3.4044444444444544,
+      "samples": 9,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 170000000.0,
+      "target_vpp": 2.5,
+      "measured_vpp": 2.570555555555556,
+      "correction_factor": 1.213886022709927,
+      "old_correction_factor": 1.2481445837952965,
+      "error_pct_before": 2.822222222222237,
+      "samples": 9,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 180000000.0,
+      "target_vpp": 2.5,
+      "measured_vpp": 2.616888888888889,
+      "correction_factor": 1.1871314049222164,
+      "old_correction_factor": 1.2426363932768019,
+      "error_pct_before": 4.675555555555566,
+      "samples": 9,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 190000000.0,
+      "target_vpp": 2.5,
+      "measured_vpp": 2.586777777777778,
+      "correction_factor": 1.1996442695474185,
+      "old_correction_factor": 1.2412852550814868,
+      "error_pct_before": 3.4711111111111137,
+      "samples": 9,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 2.5,
+      "measured_vpp": 2.526111111111111,
+      "correction_factor": 1.2346451262202374,
+      "old_correction_factor": 1.2475403086496488,
+      "error_pct_before": 1.0444444444444478,
+      "samples": 9,
+      "source": "avg_pava_regional_refine_scope_sweep",
+      "created_at": "20260606_135313"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09975,
+      "correction_factor": 1.2208315331363142,
+      "old_correction_factor": 1.2177794543034735,
+      "error_pct_before": -0.24999999999999467,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.10085000000000002,
+      "correction_factor": 1.2509873360373844,
+      "old_correction_factor": 1.2616207283937024,
+      "error_pct_before": 0.8500000000000174,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.10135000000000001,
+      "correction_factor": 1.3573276481185683,
+      "old_correction_factor": 1.375651571368169,
+      "error_pct_before": 1.3500000000000068,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09965,
+      "correction_factor": 1.4928736955198436,
+      "old_correction_factor": 1.4876486375855242,
+      "error_pct_before": -0.35000000000000586,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09935000000000001,
+      "correction_factor": 1.3866687504827577,
+      "old_correction_factor": 1.3776554036046198,
+      "error_pct_before": -0.649999999999995,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 166000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09835,
+      "correction_factor": 1.3178125677362498,
+      "old_correction_factor": 1.2960686603686018,
+      "error_pct_before": -1.649999999999996,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 180000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09865,
+      "correction_factor": 1.259936483950134,
+      "old_correction_factor": 1.242927341416807,
+      "error_pct_before": -1.3500000000000068,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 197000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09830000000000001,
+      "correction_factor": 1.270151849657254,
+      "old_correction_factor": 1.2485592682130808,
+      "error_pct_before": -1.6999999999999904,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09895000000000001,
+      "correction_factor": 1.299195905667782,
+      "old_correction_factor": 1.2855543486582701,
+      "error_pct_before": -1.0499999999999954,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 0.15,
+      "measured_vpp": 0.14955,
+      "correction_factor": 1.2214437856604548,
+      "old_correction_factor": 1.2177794543034735,
+      "error_pct_before": -0.30000000000000027,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 0.15,
+      "measured_vpp": 0.14834999999999998,
+      "correction_factor": 1.2756529104081926,
+      "old_correction_factor": 1.2616207283937024,
+      "error_pct_before": -1.100000000000012,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 0.15,
+      "measured_vpp": 0.14889999999999998,
+      "correction_factor": 1.385814208900103,
+      "old_correction_factor": 1.375651571368169,
+      "error_pct_before": -0.7333333333333414,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.15,
+      "measured_vpp": 0.14725,
+      "correction_factor": 1.5154315493231147,
+      "old_correction_factor": 1.4876486375855242,
+      "error_pct_before": -1.8333333333333313,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.15,
+      "measured_vpp": 0.14684999999999998,
+      "correction_factor": 1.4072067452549744,
+      "old_correction_factor": 1.3776554036046198,
+      "error_pct_before": -2.100000000000013,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 166000000.0,
+      "target_vpp": 0.15,
+      "measured_vpp": 0.14589999999999997,
+      "correction_factor": 1.3324900552110368,
+      "old_correction_factor": 1.2960686603686018,
+      "error_pct_before": -2.733333333333343,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 180000000.0,
+      "target_vpp": 0.15,
+      "measured_vpp": 0.147,
+      "correction_factor": 1.2682932055273541,
+      "old_correction_factor": 1.242927341416807,
+      "error_pct_before": -2.0000000000000018,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 197000000.0,
+      "target_vpp": 0.15,
+      "measured_vpp": 0.14689999999999998,
+      "correction_factor": 1.2749073535191433,
+      "old_correction_factor": 1.2485592682130808,
+      "error_pct_before": -2.0666666666666833,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.15,
+      "measured_vpp": 0.14845,
+      "correction_factor": 1.2989771121504918,
+      "old_correction_factor": 1.2855543486582701,
+      "error_pct_before": -1.0333333333333306,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.19915,
+      "correction_factor": 1.2229771070082587,
+      "old_correction_factor": 1.2177794543034735,
+      "error_pct_before": -0.4250000000000087,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.19915,
+      "correction_factor": 1.2670055017762516,
+      "old_correction_factor": 1.2616207283937024,
+      "error_pct_before": -0.4250000000000087,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.1992,
+      "correction_factor": 1.3811762764740654,
+      "old_correction_factor": 1.375651571368169,
+      "error_pct_before": -0.40000000000001146,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.19815,
+      "correction_factor": 1.5015378628165779,
+      "old_correction_factor": 1.4876486375855242,
+      "error_pct_before": -0.9250000000000091,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.19765000000000002,
+      "correction_factor": 1.3940353185981478,
+      "old_correction_factor": 1.3776554036046198,
+      "error_pct_before": -1.1749999999999927,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 166000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.19495,
+      "correction_factor": 1.3296421239995915,
+      "old_correction_factor": 1.2960686603686018,
+      "error_pct_before": -2.5249999999999995,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 180000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.1957,
+      "correction_factor": 1.2702374465169206,
+      "old_correction_factor": 1.242927341416807,
+      "error_pct_before": -2.1499999999999964,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 197000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.19545,
+      "correction_factor": 1.2776252424794892,
+      "old_correction_factor": 1.2485592682130808,
+      "error_pct_before": -2.2749999999999937,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.2,
+      "measured_vpp": 0.19925,
+      "correction_factor": 1.290393323621852,
+      "old_correction_factor": 1.2855543486582701,
+      "error_pct_before": -0.3750000000000031,
+      "samples": 20,
+      "source": "amp_100m_200m_avg_pava_scope_sweep",
+      "created_at": "20260606_140614"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 0.05,
+      "measured_vpp": 0.051019999999999996,
+      "correction_factor": 1.196424473869379,
+      "old_correction_factor": 1.2208315331363142,
+      "error_pct_before": 2.039999999999975,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 0.05,
+      "measured_vpp": 0.052039999999999996,
+      "correction_factor": 1.2019478632180867,
+      "old_correction_factor": 1.2509873360373844,
+      "error_pct_before": 4.079999999999995,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 0.05,
+      "measured_vpp": 0.05244,
+      "correction_factor": 1.2941720519818538,
+      "old_correction_factor": 1.3573276481185683,
+      "error_pct_before": 4.8799999999999955,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.05,
+      "measured_vpp": 0.0525,
+      "correction_factor": 1.4217844719236608,
+      "old_correction_factor": 1.4928736955198436,
+      "error_pct_before": 4.999999999999982,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.05,
+      "measured_vpp": 0.05252,
+      "correction_factor": 1.3201339970323285,
+      "old_correction_factor": 1.3866687504827577,
+      "error_pct_before": 5.039999999999978,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 166000000.0,
+      "target_vpp": 0.05,
+      "measured_vpp": 0.052320000000000005,
+      "correction_factor": 1.2593774538763856,
+      "old_correction_factor": 1.3178125677362498,
+      "error_pct_before": 4.64,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 180000000.0,
+      "target_vpp": 0.05,
+      "measured_vpp": 0.05244,
+      "correction_factor": 1.2013124370233925,
+      "old_correction_factor": 1.259936483950134,
+      "error_pct_before": 4.8799999999999955,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 197000000.0,
+      "target_vpp": 0.05,
+      "measured_vpp": 0.05264,
+      "correction_factor": 1.2064512249783947,
+      "old_correction_factor": 1.270151849657254,
+      "error_pct_before": 5.279999999999996,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.05,
+      "measured_vpp": 0.05286,
+      "correction_factor": 1.2289026727845083,
+      "old_correction_factor": 1.299195905667782,
+      "error_pct_before": 5.719999999999992,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 0.075,
+      "measured_vpp": 0.07482,
+      "correction_factor": 1.223768577722849,
+      "old_correction_factor": 1.2208315331363142,
+      "error_pct_before": -0.23999999999999577,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 0.075,
+      "measured_vpp": 0.07641999999999999,
+      "correction_factor": 1.2277420858780925,
+      "old_correction_factor": 1.2509873360373844,
+      "error_pct_before": 1.8933333333333247,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 0.075,
+      "measured_vpp": 0.0768,
+      "correction_factor": 1.3255152813657893,
+      "old_correction_factor": 1.3573276481185683,
+      "error_pct_before": 2.400000000000002,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.075,
+      "measured_vpp": 0.07704,
+      "correction_factor": 1.453342772118228,
+      "old_correction_factor": 1.4928736955198436,
+      "error_pct_before": 2.7200000000000113,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.075,
+      "measured_vpp": 0.07654,
+      "correction_factor": 1.3587686998459214,
+      "old_correction_factor": 1.3866687504827577,
+      "error_pct_before": 2.0533333333333292,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 166000000.0,
+      "target_vpp": 0.075,
+      "measured_vpp": 0.0768,
+      "correction_factor": 1.2869263356799314,
+      "old_correction_factor": 1.3178125677362498,
+      "error_pct_before": 2.400000000000002,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 180000000.0,
+      "target_vpp": 0.075,
+      "measured_vpp": 0.07654,
+      "correction_factor": 1.2345863116835647,
+      "old_correction_factor": 1.259936483950134,
+      "error_pct_before": 2.0533333333333292,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 197000000.0,
+      "target_vpp": 0.075,
+      "measured_vpp": 0.07692,
+      "correction_factor": 1.2384475913194752,
+      "old_correction_factor": 1.270151849657254,
+      "error_pct_before": 2.5600000000000067,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.075,
+      "measured_vpp": 0.07769999999999999,
+      "correction_factor": 1.2540501019959287,
+      "old_correction_factor": 1.299195905667782,
+      "error_pct_before": 3.600000000000003,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.0992,
+      "correction_factor": 1.230676948726123,
+      "old_correction_factor": 1.2208315331363142,
+      "error_pct_before": -0.8000000000000118,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09938000000000001,
+      "correction_factor": 1.2587918454793563,
+      "old_correction_factor": 1.2509873360373844,
+      "error_pct_before": -0.6199999999999983,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09972000000000002,
+      "correction_factor": 1.3611388368617812,
+      "old_correction_factor": 1.3573276481185683,
+      "error_pct_before": -0.27999999999999137,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 100000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09944000000000001,
+      "correction_factor": 1.5012808683827872,
+      "old_correction_factor": 1.4928736955198436,
+      "error_pct_before": -0.5599999999999938,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 150000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.0993,
+      "correction_factor": 1.3964438574851539,
+      "old_correction_factor": 1.3866687504827577,
+      "error_pct_before": -0.7000000000000006,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 166000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09936,
+      "correction_factor": 1.3263008934543576,
+      "old_correction_factor": 1.3178125677362498,
+      "error_pct_before": -0.6399999999999961,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 180000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09940000000000002,
+      "correction_factor": 1.2675417343562714,
+      "old_correction_factor": 1.259936483950134,
+      "error_pct_before": -0.5999999999999894,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 197000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09986,
+      "correction_factor": 1.2719325552345824,
+      "old_correction_factor": 1.270151849657254,
+      "error_pct_before": -0.13999999999999568,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 200000000.0,
+      "target_vpp": 0.1,
+      "measured_vpp": 0.09996000000000001,
+      "correction_factor": 1.2997157919845757,
+      "old_correction_factor": 1.299195905667782,
+      "error_pct_before": -0.039999999999995595,
+      "samples": 25,
+      "source": "amp_50m_100m_avg_pava_scope_sweep",
+      "created_at": "20260606_142213"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "target_vpp": 0.01,
+      "measured_vpp": 0.010033666666666666,
+      "measured_freq_hz": 0.0,
+      "vdiv_v": 0.005,
+      "correction_factor": 0.9589527894684701,
+      "old_correction_factor": 0.9621812638596805,
+      "source": "closed_loop_scope_sweep",
+      "created_at": "20260606_150017"
+    },
+    {
+      "freq_hz": 12000000.0,
+      "target_vpp": 0.01,
+      "measured_vpp": 0.010375166666666666,
+      "measured_freq_hz": 0.0,
+      "vdiv_v": 0.005,
+      "correction_factor": 0.9091079526046856,
+      "old_correction_factor": 0.9432146526265713,
+      "source": "closed_loop_scope_sweep",
+      "created_at": "20260606_150017"
+    },
+    {
+      "freq_hz": 15000000.0,
+      "target_vpp": 0.01,
+      "measured_vpp": 0.010241499999999999,
+      "measured_freq_hz": 0.0,
+      "vdiv_v": 0.005,
+      "correction_factor": 0.9390818333355091,
+      "old_correction_factor": 0.9617606596105616,
+      "source": "closed_loop_scope_sweep",
+      "created_at": "20260606_150017"
+    },
+    {
+      "freq_hz": 20000000.0,
+      "target_vpp": 0.01,
+      "measured_vpp": 0.010202666666666667,
+      "measured_freq_hz": 0.0,
+      "vdiv_v": 0.005,
+      "correction_factor": 0.9377466952291416,
+      "old_correction_factor": 0.9567516949191189,
+      "source": "closed_loop_scope_sweep",
+      "created_at": "20260606_150017"
+    },
+    {
+      "freq_hz": 30000000.0,
+      "target_vpp": 0.01,
+      "measured_vpp": 0.0102305,
+      "measured_freq_hz": 0.0,
+      "vdiv_v": 0.005,
+      "correction_factor": 0.9617856013767114,
+      "old_correction_factor": 0.9839547594884447,
+      "source": "closed_loop_scope_sweep",
+      "created_at": "20260606_150017"
+    },
+    {
+      "freq_hz": 50000000.0,
+      "target_vpp": 0.01,
+      "measured_vpp": 0.010346833333333333,
+      "measured_freq_hz": 0.0,
+      "vdiv_v": 0.005,
+      "correction_factor": 1.0088504034967116,
+      "old_correction_factor": 1.0438406983246558,
+      "source": "closed_loop_scope_sweep",
+      "created_at": "20260606_150017"
+    }
+  ],
+  "updated_at": "2026-06-07T22:44:05",
+  "amplitude_correction_model": {
+    "type": "correction_factor_linear_v1",
+    "source": "closed_loop_scope_sweep",
+    "created_at": "20260606_150017",
+    "description": "Final correction_factor is interpolated over frequency and target_vpp; points are old_correction_factor*target_vpp/measured_vpp.",
+    "min_correction_factor": 0.25,
+    "max_correction_factor": 4.0,
+    "points": [
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.01,
+        "correction_factor": 0.9589527894684701,
+        "measured_vpp": 0.010033666666666666,
+        "old_correction_factor": 0.9621812638596805
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.02,
+        "correction_factor": 1.119712643416967,
+        "measured_vpp": 0.02134175,
+        "old_correction_factor": 1.1948313653822027
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.03,
+        "correction_factor": 1.1575393073633147,
+        "measured_vpp": 0.030966499999999997,
+        "old_correction_factor": 1.1948313653822027
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.04,
+        "correction_factor": 1.1825257072412239,
+        "measured_vpp": 0.04041625,
+        "old_correction_factor": 1.1948313653822027
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.05,
+        "correction_factor": 1.193339690768742,
+        "measured_vpp": 0.050062499999999996,
+        "old_correction_factor": 1.1948313653822027
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.075,
+        "correction_factor": 1.223768577722849,
+        "measured_vpp": 0.07482,
+        "old_correction_factor": 1.2208315331363142,
+        "error_pct_before": -0.23999999999999577,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 1.230676948726123,
+        "measured_vpp": 0.0992,
+        "old_correction_factor": 1.2208315331363142,
+        "error_pct_before": -0.8000000000000118,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.15,
+        "correction_factor": 1.2214437856604548,
+        "measured_vpp": 0.14955,
+        "old_correction_factor": 1.2177794543034735,
+        "error_pct_before": -0.30000000000000027,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.2229771070082587,
+        "measured_vpp": 0.19915,
+        "old_correction_factor": 1.2177794543034735,
+        "error_pct_before": -0.4250000000000087,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.2218935740815258,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.2239610758989223,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.2056016597604386,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.2056016597604386,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.1996036415526754,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.2008533595484026,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.1984330866293855,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.1984384184641705,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.2017950148257113,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.1958157585734481,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.2123779975890914,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.21399345993053,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.2148086731424173,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.1986547946485198,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.221213045776694,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.2219449556880029,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.2226560951522174,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.2237286849905673,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.2049293883443895,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.226607888953073,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.2272809497455748,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.227756119461838,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.219895494309087,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 0.01,
+        "correction_factor": 0.9091079526046856,
+        "measured_vpp": 0.010375166666666666,
+        "old_correction_factor": 0.9432146526265713
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 0.05,
+        "correction_factor": 1.1634026733216845,
+        "measured_vpp": 0.05146666666666666,
+        "old_correction_factor": 1.1975291517391204
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.2264241032803598,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.2280713274171509,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.2301492822858768,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.2127221689203551,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.2116970430515888,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.2062618162070613,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.1600169308949533,
+        "source": "validation_residual"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.2002657052369603,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.2005597118325344,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.2039022209384649,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.2105755566668204,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.2146204402199283,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.2161058221920478,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.2174247734380421,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.2193321476576406,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.2227048638280105,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.2234380257959274,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.2241448681261233,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.2254451218842497,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.2266172546693834,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.228016091906303,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.2286591643434182,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.2290986330215945,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 12000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.2294481919819624,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 15000000.0,
+        "target_vpp": 0.01,
+        "correction_factor": 0.9390818333355091,
+        "measured_vpp": 0.010241499999999999,
+        "old_correction_factor": 0.9617606596105616
+      },
+      {
+        "freq_hz": 15000000.0,
+        "target_vpp": 0.05,
+        "correction_factor": 1.1955993704324355,
+        "measured_vpp": 0.05015000000000001,
+        "old_correction_factor": 1.1991861685437328
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 0.01,
+        "correction_factor": 0.9377466952291416,
+        "measured_vpp": 0.010202666666666667,
+        "old_correction_factor": 0.9567516949191189
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 0.02,
+        "correction_factor": 1.1231452063935836,
+        "measured_vpp": 0.021374749999999998,
+        "old_correction_factor": 1.2003474000180625
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 0.03,
+        "correction_factor": 1.1640955252040013,
+        "measured_vpp": 0.030934249999999996,
+        "old_correction_factor": 1.2003474000180625
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 0.04,
+        "correction_factor": 1.1906731804270925,
+        "measured_vpp": 0.040325,
+        "old_correction_factor": 1.2003474000180625
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 0.05,
+        "correction_factor": 1.1982504617100698,
+        "measured_vpp": 0.05008750000000001,
+        "old_correction_factor": 1.2003474000180625
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 0.075,
+        "correction_factor": 1.2277420858780925,
+        "measured_vpp": 0.07641999999999999,
+        "old_correction_factor": 1.2509873360373844,
+        "error_pct_before": 1.8933333333333247,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 1.2587918454793563,
+        "measured_vpp": 0.09938000000000001,
+        "old_correction_factor": 1.2509873360373844,
+        "error_pct_before": -0.6199999999999983,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 0.15,
+        "correction_factor": 1.2756529104081926,
+        "measured_vpp": 0.14834999999999998,
+        "old_correction_factor": 1.2616207283937024,
+        "error_pct_before": -1.100000000000012,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.2670055017762516,
+        "measured_vpp": 0.19915,
+        "old_correction_factor": 1.2616207283937024,
+        "error_pct_before": -0.4250000000000087,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.253096264012664,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.255216562259724,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.2416272473589884,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.2363883138258283,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.2139192825485299,
+        "source": "key_amplitude_alignment",
+        "created_at": "20260606_132209",
+        "correction_factor_before_key_amp_align_20260606_175641": 1.233266121114147,
+        "measured_vpp_before_key_amp_align_20260606_175641": null,
+        "measured_vpp": 1.0159375,
+        "updated_at": "20260606_175641"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.2092115613208865,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.21011495273078,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.2120993847972203,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.2179682622015902,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.2260425153797787,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.2265674668730273,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.226636477081121,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.2274164364305844,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.2398393440031101,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.2307844778271848,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.2314824708075012,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.2321337484466468,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.2333672161108873,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.2332982800921939,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.2352010238423492,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.2355913676960635,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.2356415693755085,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 20000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.2265910999895528,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.2910707773486914,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.2858237275631004,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.286261501123907,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.2711913058620317,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.2665467222827549,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.2620886279842085,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.2220038249199827,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.2288360518739987,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.2341351964856977,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.2450635394473943,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.2525477776307024,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.2507814838605482,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.2490126501895278,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.2477597400187115,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.2454466708276843,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.245066369924726,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.2451845001110118,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.2451134574635656,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.2454722172967976,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.2456543667381024,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.2457936334865094,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.252678045091735,
+        "source": "validation_residual"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.2458249100076757,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 28000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.2457359154220409,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 0.01,
+        "correction_factor": 0.9617856013767114,
+        "measured_vpp": 0.0102305,
+        "old_correction_factor": 0.9839547594884447
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.2985400836470655,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.29413828629182,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.294141974797036,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.2786916634149814,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.2742005736997621,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.2693988970775276,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.2268596157797524,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.2356000553035054,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.24178951766565,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.25370490002306,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.2611508593978513,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.259223231921506,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.256610755795393,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.2550941731054897,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.2516323801590072,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.2500954316497965,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.249966849938563,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.2497714216336915,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.2496575936936707,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.2494831082179545,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.2493130072695373,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.2492284320605966,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.2491496618852191,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 30000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.2490260530548134,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.3250245991756011,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.3236649256639914,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.3221057904064437,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.3052931328231203,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.3013551335836744,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.2953198993749264,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.2508503982352024,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.2646647420200046,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.2722274379911143,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.2841873149831493,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.2903971128557514,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.290123686062593,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.2863652809776842,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.284753544877636,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.280284888921871,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.2749211601921973,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.2736513062281527,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.2724430132585973,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.2702137387736974,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.26849157654696,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.2666063094002447,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.2657541081980699,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.2651606877214003,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 37000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.264766884566283,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.3365398260260108,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.336524536976357,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.3342744999448382,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.3168625072982423,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.3131692396807302,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.3065903070830407,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.2639315074690658,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.2777528017366493,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.2846264655831066,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.2947910922390367,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.3001223008430844,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.3005974862192062,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.2983396176527793,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.2976061220531154,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.293093675819979,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.2867763026074255,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.285159096186926,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.2837838902943415,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.280649423136295,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.2782912586139796,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.275642416248029,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.2744199578818802,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.2737468452454423,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 40000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.2729055727317695,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.3559546865101433,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.3582354505723806,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.3548050828387066,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.3363731229123246,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.3330982350245892,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.3255926572651155,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.2864272928013565,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.2966037483464197,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.3013424396549154,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.3157217293227492,
+        "source": "validation_residual"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.3141713040421146,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.3135568899085541,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.3143915939372894,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.3140181225347711,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.312380929548288,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.305891295709196,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.3043927234903188,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.3025805472536898,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.2987476007470276,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.2955773682316745,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.2921747660023981,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.2902553999202522,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.2888257785335682,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 45000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.2875916071304447,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 0.01,
+        "correction_factor": 1.0088504034967116,
+        "measured_vpp": 0.010346833333333333,
+        "old_correction_factor": 1.0438406983246558
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 0.02,
+        "correction_factor": 1.210468177507229,
+        "measured_vpp": 0.021383,
+        "old_correction_factor": 1.2941720519818538
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 0.03,
+        "correction_factor": 1.2510826793666667,
+        "measured_vpp": 0.031033250000000002,
+        "old_correction_factor": 1.2941720519818538
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 0.04,
+        "correction_factor": 1.2781946192413374,
+        "measured_vpp": 0.040499999999999994,
+        "old_correction_factor": 1.2941720519818538
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 0.05,
+        "correction_factor": 1.29481946171271,
+        "measured_vpp": 0.049975000000000006,
+        "old_correction_factor": 1.2941720519818538
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 0.075,
+        "correction_factor": 1.3255152813657893,
+        "measured_vpp": 0.0768,
+        "old_correction_factor": 1.3573276481185683,
+        "error_pct_before": 2.400000000000002,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 1.3611388368617812,
+        "measured_vpp": 0.09972000000000002,
+        "old_correction_factor": 1.3573276481185683,
+        "error_pct_before": -0.27999999999999137,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 0.15,
+        "correction_factor": 1.385814208900103,
+        "measured_vpp": 0.14889999999999998,
+        "old_correction_factor": 1.375651571368169,
+        "error_pct_before": -0.7333333333333414,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.3811762764740654,
+        "measured_vpp": 0.1992,
+        "old_correction_factor": 1.375651571368169,
+        "error_pct_before": -0.40000000000001146,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.3802990428930613,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.375651571368169,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.356172807521485,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.3533296779459683,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.344871367458806,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.3049294483071774,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.3104745018370703,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.312773908484432,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.31681641752767,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.3343230141609717,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.3221193334502201,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.3247923790556964,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.325503817170074,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.339365098561731,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.3214037813063462,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.3199022207605202,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.318351465802123,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.315557426761979,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.319185478203597,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.3078738129117826,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.3055398614499765,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.3038250099047601,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 50000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.3165790698555133,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.426941432459219,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.4183239009234883,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.418297528913957,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.4057725730398902,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.405195164622492,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.3921485112123313,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.3530511224224175,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.3481562542809546,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.3475857902853388,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.3504467086358947,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.3591059847463483,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.3655310624990562,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.3663386820594368,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.3660524271928631,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.362292474131151,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.3587299871505647,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.358247538639913,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.3578757137107451,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.3569237936284952,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.3557354149561782,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.3541878970068026,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.3529408706536608,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.3512530825760187,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 70000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.3490286461898635,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.4321744386990187,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.4221835302722003,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.4226341708625871,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.4108312451135054,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.4104898028643353,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.3969666854070448,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.3634610003093317,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.3585277566045089,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.3581665985432718,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.3616379239729268,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.370363986233078,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.3757328475219648,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.3746431152665612,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.3733125893296267,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.366565197474801,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.3616386522980322,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.3610368725873043,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.3605832557591908,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.3635172238130326,
+        "source": "validation_residual"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.3584447824316437,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.3572176023949933,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.3562593782320045,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.3551922386260735,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 72000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.3531884432040886,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.461300904252966,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.4436000020287145,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.4467238120377324,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.4389810933098197,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.4399689358388477,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.4237662705603389,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.444403783725213,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.4294139974925704,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.4257667520347372,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.4218008562287465,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.41718374581012,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.4116604278916194,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.4079193515983899,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.4051051635930965,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.3915019632897487,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.3813197807175022,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.379377442409469,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.3780378765555623,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.376007128700738,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.3752047547450432,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.3748069805270986,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.3754010703522563,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.3759999481986194,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 83000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.3771581505151747,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.4964877213568222,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.4693265512203515,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.4757198300413619,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.4729740973857843,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.4756032388838423,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.4561021161600192,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.45586206424253,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.4484442498131516,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.4434115065635096,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.435086712399259,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.4269213537114918,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.4042430080938824,
+        "source": "validation_residual"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.4154945101262257,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.413388275015064,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.4045940954652347,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.3969460947690167,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.3954881652260243,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.394245258971528,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.3923858153229276,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.3910980431609985,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.3905692786012802,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.390553539736021,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.390840685996786,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 96000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.391406960230184,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 0.01,
+        "correction_factor": 1.1734041487392748,
+        "measured_vpp": 0.012116749999999999,
+        "old_correction_factor": 1.4217844719236608
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 0.02,
+        "correction_factor": 1.318512018105544,
+        "measured_vpp": 0.0215665,
+        "old_correction_factor": 1.4217844719236608
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 0.03,
+        "correction_factor": 1.3663778501020236,
+        "measured_vpp": 0.031216499999999998,
+        "old_correction_factor": 1.4217844719236608
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 0.04,
+        "correction_factor": 1.3976144765694873,
+        "measured_vpp": 0.04069175,
+        "old_correction_factor": 1.4217844719236608
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 0.05,
+        "correction_factor": 1.416825582385312,
+        "measured_vpp": 0.050175000000000004,
+        "old_correction_factor": 1.4217844719236608
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 0.075,
+        "correction_factor": 1.453342772118228,
+        "measured_vpp": 0.07704,
+        "old_correction_factor": 1.4928736955198436,
+        "error_pct_before": 2.7200000000000113,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 1.5012808683827872,
+        "measured_vpp": 0.09944000000000001,
+        "old_correction_factor": 1.4928736955198436,
+        "error_pct_before": -0.5599999999999938,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 0.15,
+        "correction_factor": 1.5154315493231147,
+        "measured_vpp": 0.14725,
+        "old_correction_factor": 1.4876486375855242,
+        "error_pct_before": -1.8333333333333313,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.5015378628165779,
+        "measured_vpp": 0.19815,
+        "old_correction_factor": 1.4876486375855242,
+        "error_pct_before": -0.9250000000000091,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.4747125624760848,
+        "measured_vpp": 0.3005333333333333,
+        "old_correction_factor": 1.4773342736982644,
+        "error_pct_before": 0.1777777777777878,
+        "samples": 15,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.4759026481295785,
+        "measured_vpp": 0.40240000000000004,
+        "old_correction_factor": 1.484758064018356,
+        "error_pct_before": 0.6000000000000005,
+        "samples": 15,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.4835941646885111,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.4867440461422023,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.4661985882181265,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.4561862313678815,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.449312357229244,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.4444858641968048,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.436307376713992,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.468353066155312,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.4201832276320325,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.415328444963338,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.4130350712528166,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.415725536175484,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.3971431648277772,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.39589462589627,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.3948433680466776,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.3927424967197364,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.3960358492226657,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.3907828027512494,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.3905846368449322,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.3906530619956305,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 100000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.3939141217511946,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.4405085059540041,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.4291629165813626,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.4300435537132048,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.4101392087016609,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.4131331348347855,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.3972604603100436,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.3720084118832356,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.3724060899763937,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.3741793384648138,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.3778203379099223,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.3830630299053148,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.3796872948999643,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.3776643453834365,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.3767395557123825,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.3748932222261803,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.3737868553667674,
+        "source": "validation_residual"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.3713256097410205,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.3703050995258501,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.367734400744983,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.3647487703422208,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.3595426216927966,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.3559219756364873,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.3524614163161512,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 126000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.3479201308271749,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.41060851834887,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.4074628922913088,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.4054753105055662,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.3774746696694151,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.3803992443396262,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.3665454967829873,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.3076044691197861,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.302444144156178,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.3027197495771525,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.3075347424270733,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.3230010239061336,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.3379854077151285,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.3468613803621736,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.349534317636734,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.3552495921746843,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.3525909020504712,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.3513936753373545,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.3499413435129723,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.3465021636689742,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.3425329716430137,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.3367485733544646,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.3333138631503951,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.3379555906905294,
+        "source": "validation_residual"
+      },
+      {
+        "freq_hz": 138000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.3269198109895812,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 0.01,
+        "correction_factor": 1.1203241796005674,
+        "measured_vpp": 0.011783499999999999,
+        "old_correction_factor": 1.3201339970323285
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 0.02,
+        "correction_factor": 1.226163863911789,
+        "measured_vpp": 0.021532749999999996,
+        "old_correction_factor": 1.3201339970323285
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 0.03,
+        "correction_factor": 1.2649707317071335,
+        "measured_vpp": 0.031308249999999996,
+        "old_correction_factor": 1.3201339970323285
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 0.04,
+        "correction_factor": 1.3038440948720211,
+        "measured_vpp": 0.04049975,
+        "old_correction_factor": 1.3201339970323285
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 0.05,
+        "correction_factor": 1.317170363713972,
+        "measured_vpp": 0.050112500000000004,
+        "old_correction_factor": 1.3201339970323285
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 0.075,
+        "correction_factor": 1.3587686998459214,
+        "measured_vpp": 0.07654,
+        "old_correction_factor": 1.3866687504827577,
+        "error_pct_before": 2.0533333333333292,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 1.3964438574851539,
+        "measured_vpp": 0.0993,
+        "old_correction_factor": 1.3866687504827577,
+        "error_pct_before": -0.7000000000000006,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 0.15,
+        "correction_factor": 1.4072067452549744,
+        "measured_vpp": 0.14684999999999998,
+        "old_correction_factor": 1.3776554036046198,
+        "error_pct_before": -2.100000000000013,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.3940353185981478,
+        "measured_vpp": 0.19765000000000002,
+        "old_correction_factor": 1.3776554036046198,
+        "error_pct_before": -1.1749999999999927,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.3690552236456939,
+        "measured_vpp": 0.30373333333333336,
+        "old_correction_factor": 1.3860923553177293,
+        "error_pct_before": 1.244444444444448,
+        "samples": 15,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.3622575457076582,
+        "measured_vpp": 0.4056,
+        "old_correction_factor": 1.3813291513475654,
+        "error_pct_before": 1.4000000000000012,
+        "samples": 15,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.3455667737427615,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.348423603411005,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.3102997235561982,
+        "source": "key_amplitude_alignment",
+        "created_at": "20260606_132209",
+        "correction_factor_before_key_amp_align_20260606_175641": 1.336505718027322,
+        "measured_vpp_before_key_amp_align_20260606_175641": null,
+        "measured_vpp": 1.02,
+        "updated_at": "20260606_175641"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.2885538031301047,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.2838954600838144,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.284367491732922,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.2897533624664006,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.319999550531027,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.3156503165955495,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.321665464928005,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.321707302198346,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.3041934724442696,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.317591215725627,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.315786807995101,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.313945545210943,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.3104032473541847,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.271770778009367,
+        "measured_vpp": 2.5851111111111114,
+        "old_correction_factor": 1.3150675076073748,
+        "error_pct_before": 3.4044444444444544,
+        "samples": 9,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.3039806586590617,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.302550388832593,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.3016436881220121,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 150000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.254443792394078,
+        "source": "key_amplitude_alignment",
+        "correction_factor_before_key_amp_align_20260606_175641": 1.2875558816641468,
+        "measured_vpp_before_key_amp_align_20260606_175641": null,
+        "measured_vpp": 3.0791875,
+        "updated_at": "20260606_175641"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 0.05,
+        "correction_factor": 1.2593774538763856,
+        "measured_vpp": 0.052320000000000005,
+        "old_correction_factor": 1.3178125677362498,
+        "error_pct_before": 4.64,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 0.075,
+        "correction_factor": 1.2869263356799314,
+        "measured_vpp": 0.0768,
+        "old_correction_factor": 1.3178125677362498,
+        "error_pct_before": 2.400000000000002,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 1.3263008934543576,
+        "measured_vpp": 0.09936,
+        "old_correction_factor": 1.3178125677362498,
+        "error_pct_before": -0.6399999999999961,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 0.15,
+        "correction_factor": 1.3324900552110368,
+        "measured_vpp": 0.14589999999999997,
+        "old_correction_factor": 1.2960686603686018,
+        "error_pct_before": -2.733333333333343,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.3296421239995915,
+        "measured_vpp": 0.19495,
+        "old_correction_factor": 1.2960686603686018,
+        "error_pct_before": -2.5249999999999995,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.2953560639667332,
+        "measured_vpp": 0.312,
+        "old_correction_factor": 1.3471703065254026,
+        "error_pct_before": 4.0000000000000036,
+        "samples": 15,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.2861259134745444,
+        "measured_vpp": 0.4196,
+        "old_correction_factor": 1.349146083234797,
+        "error_pct_before": 4.899999999999993,
+        "samples": 15,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.3163368428845943,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.3164982577499844,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.3096103611613181,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.2678598557057232,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.2519621073886384,
+        "source": "validation_residual"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.2651170005742678,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.2689720199421288,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.2808569858199588,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.2914781854769177,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.2876380792852662,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.2844441179143218,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.27156018076954,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.2606838458116494,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.2589678956316284,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.2575308422069462,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.2553981390603064,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.2542277755043285,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.252698803743654,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.2529281562647467,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.2534046852485685,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 166000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.2544989893490561,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 170000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.213886022709927,
+        "measured_vpp": 2.570555555555556,
+        "old_correction_factor": 1.2481445837952965,
+        "error_pct_before": 2.822222222222237,
+        "samples": 9,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.3384646010698547,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.3304874205136679,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.3353028140595766,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.303749235348413,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.3027696685032923,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.2980144820243993,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.2622024253189164,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.260129046522186,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.2601990414128244,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.2625945989632026,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.2691228578802425,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.2726090537720196,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.268458716021857,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.2648879864272877,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.2522021726854649,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.2466507914996572,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.2456148474320137,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.2450061405208357,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.2441175302337693,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.2435821900135224,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.2382932229634156,
+        "source": "validation_residual"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.2433148688440745,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.2435158850966472,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 173000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.2439019979454435,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 180000000.0,
+        "target_vpp": 0.01,
+        "correction_factor": 1.0256888616819078,
+        "measured_vpp": 0.01171225,
+        "old_correction_factor": 1.2013124370233925
+      },
+      {
+        "freq_hz": 180000000.0,
+        "target_vpp": 0.02,
+        "correction_factor": 1.1067541309595372,
+        "measured_vpp": 0.02170875,
+        "old_correction_factor": 1.2013124370233925
+      },
+      {
+        "freq_hz": 180000000.0,
+        "target_vpp": 0.03,
+        "correction_factor": 1.1563311550903768,
+        "measured_vpp": 0.031167,
+        "old_correction_factor": 1.2013124370233925
+      },
+      {
+        "freq_hz": 180000000.0,
+        "target_vpp": 0.04,
+        "correction_factor": 1.1828161494858083,
+        "measured_vpp": 0.040625499999999995,
+        "old_correction_factor": 1.2013124370233925
+      },
+      {
+        "freq_hz": 180000000.0,
+        "target_vpp": 0.05,
+        "correction_factor": 1.198914607807777,
+        "measured_vpp": 0.0501,
+        "old_correction_factor": 1.2013124370233925
+      },
+      {
+        "freq_hz": 180000000.0,
+        "target_vpp": 0.075,
+        "correction_factor": 1.2345863116835647,
+        "measured_vpp": 0.07654,
+        "old_correction_factor": 1.259936483950134,
+        "error_pct_before": 2.0533333333333292,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 180000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 1.2675417343562714,
+        "measured_vpp": 0.09940000000000002,
+        "old_correction_factor": 1.259936483950134,
+        "error_pct_before": -0.5999999999999894,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 180000000.0,
+        "target_vpp": 0.15,
+        "correction_factor": 1.2682932055273541,
+        "measured_vpp": 0.147,
+        "old_correction_factor": 1.242927341416807,
+        "error_pct_before": -2.0000000000000018,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 180000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.2702374465169206,
+        "measured_vpp": 0.1957,
+        "old_correction_factor": 1.242927341416807,
+        "error_pct_before": -2.1499999999999964,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 180000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.2382401086224302,
+        "measured_vpp": 0.31839999999999996,
+        "old_correction_factor": 1.3141855019512725,
+        "error_pct_before": 6.133333333333324,
+        "samples": 15,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 180000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.2321831518923008,
+        "measured_vpp": 0.42906666666666665,
+        "old_correction_factor": 1.3217217942631412,
+        "error_pct_before": 7.266666666666666,
+        "samples": 15,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 180000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.1871314049222164,
+        "measured_vpp": 2.616888888888889,
+        "old_correction_factor": 1.2426363932768019,
+        "error_pct_before": 4.675555555555566,
+        "samples": 9,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 190000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.1996442695474185,
+        "measured_vpp": 2.586777777777778,
+        "old_correction_factor": 1.2412852550814868,
+        "error_pct_before": 3.4711111111111137,
+        "samples": 9,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.3040598437917654,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.2862393558443088,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.2984400460406802,
+        "source": "low_amp_60mVdiv_global_surface",
+        "created_at": "20260606_134013"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.2701863267139333,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.2662237221573063,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.2670549048248958,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.2617645223816907,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.2594356179400183,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.2583665416424374,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.256984159529116,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.2547827259859963,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.2508823433504797,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.247572993341497,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.2462650875748784,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.2430523863784855,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.241776333940049,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.2415875269988115,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.2411081770128867,
+        "source": "validation_residual"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.2411886895059412,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.2410150274424239,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.240937348655976,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.240972270496519,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.241074839450435,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 192000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.241343645545422,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 197000000.0,
+        "target_vpp": 0.05,
+        "correction_factor": 1.2064512249783947,
+        "measured_vpp": 0.05264,
+        "old_correction_factor": 1.270151849657254,
+        "error_pct_before": 5.279999999999996,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 197000000.0,
+        "target_vpp": 0.075,
+        "correction_factor": 1.2384475913194752,
+        "measured_vpp": 0.07692,
+        "old_correction_factor": 1.270151849657254,
+        "error_pct_before": 2.5600000000000067,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 197000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 1.2719325552345824,
+        "measured_vpp": 0.09986,
+        "old_correction_factor": 1.270151849657254,
+        "error_pct_before": -0.13999999999999568,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 197000000.0,
+        "target_vpp": 0.15,
+        "correction_factor": 1.2749073535191433,
+        "measured_vpp": 0.14689999999999998,
+        "old_correction_factor": 1.2485592682130808,
+        "error_pct_before": -2.0666666666666833,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 197000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.2776252424794892,
+        "measured_vpp": 0.19545,
+        "old_correction_factor": 1.2485592682130808,
+        "error_pct_before": -2.2749999999999937,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 197000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.2471574606578057,
+        "measured_vpp": 0.30666666666666664,
+        "old_correction_factor": 1.274872070894646,
+        "error_pct_before": 2.2222222222222143,
+        "samples": 15,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 197000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.236581984981703,
+        "measured_vpp": 0.4169333333333333,
+        "old_correction_factor": 1.2889306223459283,
+        "error_pct_before": 4.233333333333333,
+        "samples": 15,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 0.01,
+        "correction_factor": 1.0294472651597975,
+        "measured_vpp": 0.0119375,
+        "old_correction_factor": 1.2289026727845083
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 0.02,
+        "correction_factor": 1.130467238032802,
+        "measured_vpp": 0.0217415,
+        "old_correction_factor": 1.2289026727845083
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 0.03,
+        "correction_factor": 1.1722255666375812,
+        "measured_vpp": 0.0314505,
+        "old_correction_factor": 1.2289026727845083
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 0.04,
+        "correction_factor": 1.2035970449151667,
+        "measured_vpp": 0.040841,
+        "old_correction_factor": 1.2289026727845083
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 0.05,
+        "correction_factor": 1.2227887291388142,
+        "measured_vpp": 0.05025,
+        "old_correction_factor": 1.2289026727845083
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 0.075,
+        "correction_factor": 1.2540501019959287,
+        "measured_vpp": 0.07769999999999999,
+        "old_correction_factor": 1.299195905667782,
+        "error_pct_before": 3.600000000000003,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 1.2997157919845757,
+        "measured_vpp": 0.09996000000000001,
+        "old_correction_factor": 1.299195905667782,
+        "error_pct_before": -0.039999999999995595,
+        "samples": 25,
+        "source": "amp_50m_100m_avg_pava",
+        "created_at": "20260606_142213"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 0.15,
+        "correction_factor": 1.2989771121504918,
+        "measured_vpp": 0.14845,
+        "old_correction_factor": 1.2855543486582701,
+        "error_pct_before": -1.0333333333333306,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 0.2,
+        "correction_factor": 1.290393323621852,
+        "measured_vpp": 0.19925,
+        "old_correction_factor": 1.2855543486582701,
+        "error_pct_before": -0.3750000000000031,
+        "samples": 20,
+        "source": "amp_100m_200m_avg_pava",
+        "created_at": "20260606_140614"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 1.2574333736583994,
+        "measured_vpp": 0.3025333333333334,
+        "old_correction_factor": 1.2680516999248483,
+        "error_pct_before": 0.8444444444444699,
+        "samples": 15,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 0.4,
+        "correction_factor": 1.270519770424829,
+        "measured_vpp": 0.404,
+        "old_correction_factor": 1.2832249681290773,
+        "error_pct_before": 1.0000000000000009,
+        "samples": 15,
+        "source": "avg_pava_regional_refine",
+        "created_at": "20260606_135313"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 0.6,
+        "correction_factor": 1.2563143618759571,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 0.8,
+        "correction_factor": 1.2511443439258503,
+        "source": "mid_amp_150mVdiv_global_surface",
+        "created_at": "20260606_132209"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 1.3059061478401883,
+        "source": "key_amplitude_alignment",
+        "created_at": "20260606_132209",
+        "correction_factor_before_key_amp_align_20260606_175641": 1.254241235866261,
+        "measured_vpp_before_key_amp_align_20260606_175641": null,
+        "measured_vpp": 0.9604374999999999,
+        "updated_at": "20260606_175641"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 1.1,
+        "correction_factor": 1.2642410744187884,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 1.2,
+        "correction_factor": 1.261786183338876,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 1.25,
+        "correction_factor": 1.2602959799485796,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 1.35,
+        "correction_factor": 1.2580774246931141,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 1.5,
+        "correction_factor": 1.2576349933895827,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 1.65,
+        "correction_factor": 1.2513224558121503,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 1.75,
+        "correction_factor": 1.2485952785823173,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 1.8,
+        "correction_factor": 1.2474092431144055,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 1.2449055087694432,
+        "source": "closed_loop_grid"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 2.2,
+        "correction_factor": 1.243165024063909,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 2.25,
+        "correction_factor": 1.2430673138343733,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 2.3,
+        "correction_factor": 1.2430048345577145,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 2.4,
+        "correction_factor": 1.242961468637566,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.2912131754360927,
+        "measured_vpp": 2.390475,
+        "old_correction_factor": 1.2475403086496488,
+        "error_pct_before": 1.0444444444444478,
+        "samples": 9,
+        "source": "rf200_high_amplitude_alignment",
+        "created_at": "20260606_135313",
+        "correction_factor_before_rf200_hi_amp_align_20260606_180344": 1.2346451262202374,
+        "measured_vpp_before_rf200_hi_amp_align_20260606_180344": 2.526111111111111,
+        "updated_at": "20260606_180344"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 2.65,
+        "correction_factor": 1.243181697966862,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 2.75,
+        "correction_factor": 1.2433766974378597,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 2.85,
+        "correction_factor": 1.243611839611919,
+        "source": "local_global_fit"
+      },
+      {
+        "freq_hz": 200000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.2906960977055029,
+        "source": "rf200_high_amplitude_alignment",
+        "correction_factor_before_key_amp_align_20260606_175641": 1.24787784824988,
+        "measured_vpp_before_key_amp_align_20260606_175641": null,
+        "measured_vpp": 2.8412249999999997,
+        "updated_at": "20260606_180344",
+        "correction_factor_before_rf200_hi_amp_align_20260606_180344": 1.222386006734439,
+        "measured_vpp_before_rf200_hi_amp_align_20260606_180344": 3.0625625
+      }
+    ],
+    "merged_from_existing": true
+  },
+  "pe43711_frequency_trim_model": {
+    "type": "pe43711_atten_delta_db_v1",
+    "created_at": "20260607_132717",
+    "source": "manual_flatness_record_1v_20db_probe",
+    "reference_frequency_hz": 200000000.0,
+    "reference_dbm": -13.57,
+    "min_freq_hz": 200000000.0,
+    "description": "For RF >200 MHz, apply interpolated PE43711 attenuation delta only. Negative values reduce attenuation to compensate high-frequency flatness loss. Probe 20 dB affects absolute level but not relative delta.",
+    "points": [
+      {
+        "freq_hz": 200000000.0,
+        "relative_reference_dbm": -13.57,
+        "atten_delta_db": 0.0,
+        "pe43711_step_delta": 0
+      },
+      {
+        "freq_hz": 300000000.0,
+        "relative_reference_dbm": -13.57,
+        "atten_delta_db": 0.0,
+        "pe43711_step_delta": 0
+      },
+      {
+        "freq_hz": 500000000.0,
+        "relative_reference_dbm": -13.57,
+        "atten_delta_db": 0.0,
+        "pe43711_step_delta": 0
+      },
+      {
+        "freq_hz": 700000000.0,
+        "relative_reference_dbm": -13.57,
+        "atten_delta_db": 0.0,
+        "pe43711_step_delta": 0
+      },
+      {
+        "freq_hz": 900000000.0,
+        "relative_reference_dbm": -13.57,
+        "atten_delta_db": 0.0,
+        "pe43711_step_delta": 0
+      },
+      {
+        "freq_hz": 1000000000.0,
+        "relative_reference_dbm": -13.57,
+        "atten_delta_db": 0.0,
+        "pe43711_step_delta": 0
+      }
+    ],
+    "notes": "Flattened 200 MHz to 1 GHz to use the 200 MHz PE43711 trim standard."
+  },
+  "ram_pe43711_frequency_trim_model": {
+    "type": "pe43711_atten_delta_db_v1",
+    "created_at": "2026-06-07T22:44:05",
+    "source": "D:\\FPGA\\ku5P\\ad9173-x\\outputs\\spectrum_analyzer_amplitude_calibration\\PE43711_Amplitude_Calibration_10MHz_2GHz_scrollable.xlsx",
+    "applies_to_output_mode": "ram_waveform",
+    "target_vpp": 1.0,
+    "load_ohm": 50.0,
+    "target_dbm": 3.979400087,
+    "external_attenuation_db": 0.0,
+    "pe43711_step_db": 0.25,
+    "min_freq_hz": 0.0,
+    "frequency_range_hz": [
+      10000000.0,
+      2000000000.0
+    ],
+    "description": "RAM-mode PE43711 frequency trim. atten_delta_db is added to the normal PE43711 attenuation; negative values reduce attenuation because the measured RAM-mode output was below 1 Vpp.",
+    "points": [
+      {
+        "freq_hz": 10000000.0,
+        "freq_mhz": 10.0,
+        "measured_dbm": -0.42,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -4.3994,
+        "atten_delta_db": -4.5,
+        "pe43711_step_delta": -18,
+        "corrected_dbm": 4.08,
+        "residual_db": 0.1006
+      },
+      {
+        "freq_hz": 20000000.0,
+        "freq_mhz": 20.0,
+        "measured_dbm": -0.43,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -4.4094,
+        "atten_delta_db": -4.5,
+        "pe43711_step_delta": -18,
+        "corrected_dbm": 4.07,
+        "residual_db": 0.0906
+      },
+      {
+        "freq_hz": 30000000.0,
+        "freq_mhz": 30.0,
+        "measured_dbm": -0.33,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -4.3094,
+        "atten_delta_db": -4.25,
+        "pe43711_step_delta": -17,
+        "corrected_dbm": 3.92,
+        "residual_db": -0.0594
+      },
+      {
+        "freq_hz": 50000000.0,
+        "freq_mhz": 50.0,
+        "measured_dbm": 0.17,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -3.8094,
+        "atten_delta_db": -3.75,
+        "pe43711_step_delta": -15,
+        "corrected_dbm": 3.92,
+        "residual_db": -0.0594
+      },
+      {
+        "freq_hz": 70000000.0,
+        "freq_mhz": 70.0,
+        "measured_dbm": 0.34,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -3.6394,
+        "atten_delta_db": -3.75,
+        "pe43711_step_delta": -15,
+        "corrected_dbm": 4.09,
+        "residual_db": 0.1106
+      },
+      {
+        "freq_hz": 100000000.0,
+        "freq_mhz": 100.0,
+        "measured_dbm": 0.83,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -3.1494,
+        "atten_delta_db": -3.25,
+        "pe43711_step_delta": -13,
+        "corrected_dbm": 4.08,
+        "residual_db": 0.1006
+      },
+      {
+        "freq_hz": 130000000.0,
+        "freq_mhz": 130.0,
+        "measured_dbm": 0.85,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -3.1294,
+        "atten_delta_db": -3.25,
+        "pe43711_step_delta": -13,
+        "corrected_dbm": 4.1,
+        "residual_db": 0.1206
+      },
+      {
+        "freq_hz": 150000000.0,
+        "freq_mhz": 150.0,
+        "measured_dbm": 0.81,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -3.1694,
+        "atten_delta_db": -3.25,
+        "pe43711_step_delta": -13,
+        "corrected_dbm": 4.06,
+        "residual_db": 0.0806
+      },
+      {
+        "freq_hz": 170000000.0,
+        "freq_mhz": 170.0,
+        "measured_dbm": 1.24,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -2.7394,
+        "atten_delta_db": -2.75,
+        "pe43711_step_delta": -11,
+        "corrected_dbm": 3.99,
+        "residual_db": 0.0106
+      },
+      {
+        "freq_hz": 200000000.0,
+        "freq_mhz": 200.0,
+        "measured_dbm": 1.9032,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -2.0762,
+        "atten_delta_db": -2.0,
+        "pe43711_step_delta": -8,
+        "corrected_dbm": 3.9032,
+        "residual_db": -0.0762
+      },
+      {
+        "freq_hz": 220000000.0,
+        "freq_mhz": 220.0,
+        "measured_dbm": 1.38,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -2.5994,
+        "atten_delta_db": -2.5,
+        "pe43711_step_delta": -10,
+        "corrected_dbm": 3.88,
+        "residual_db": -0.0994
+      },
+      {
+        "freq_hz": 250000000.0,
+        "freq_mhz": 250.0,
+        "measured_dbm": 1.51,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -2.4694,
+        "atten_delta_db": -2.5,
+        "pe43711_step_delta": -10,
+        "corrected_dbm": 4.01,
+        "residual_db": 0.0306
+      },
+      {
+        "freq_hz": 270000000.0,
+        "freq_mhz": 270.0,
+        "measured_dbm": 1.58,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -2.3994,
+        "atten_delta_db": -2.5,
+        "pe43711_step_delta": -10,
+        "corrected_dbm": 4.08,
+        "residual_db": 0.1006
+      },
+      {
+        "freq_hz": 300000000.0,
+        "freq_mhz": 300.0,
+        "measured_dbm": 1.59,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -2.3894,
+        "atten_delta_db": -2.5,
+        "pe43711_step_delta": -10,
+        "corrected_dbm": 4.09,
+        "residual_db": 0.1106
+      },
+      {
+        "freq_hz": 350000000.0,
+        "freq_mhz": 350.0,
+        "measured_dbm": 1.56,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -2.4194,
+        "atten_delta_db": -2.5,
+        "pe43711_step_delta": -10,
+        "corrected_dbm": 4.06,
+        "residual_db": 0.0806
+      },
+      {
+        "freq_hz": 400000000.0,
+        "freq_mhz": 400.0,
+        "measured_dbm": 1.46,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -2.5194,
+        "atten_delta_db": -2.5,
+        "pe43711_step_delta": -10,
+        "corrected_dbm": 3.96,
+        "residual_db": -0.0194
+      },
+      {
+        "freq_hz": 500000000.0,
+        "freq_mhz": 500.0,
+        "measured_dbm": 1.52,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -2.4594,
+        "atten_delta_db": -2.5,
+        "pe43711_step_delta": -10,
+        "corrected_dbm": 4.02,
+        "residual_db": 0.0406
+      },
+      {
+        "freq_hz": 600000000.0,
+        "freq_mhz": 600.0,
+        "measured_dbm": 1.55,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -2.4294,
+        "atten_delta_db": -2.5,
+        "pe43711_step_delta": -10,
+        "corrected_dbm": 4.05,
+        "residual_db": 0.0706
+      },
+      {
+        "freq_hz": 700000000.0,
+        "freq_mhz": 700.0,
+        "measured_dbm": 1.4,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -2.5794,
+        "atten_delta_db": -2.5,
+        "pe43711_step_delta": -10,
+        "corrected_dbm": 3.9,
+        "residual_db": -0.0794
+      },
+      {
+        "freq_hz": 800000000.0,
+        "freq_mhz": 800.0,
+        "measured_dbm": 1.22,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -2.7594,
+        "atten_delta_db": -2.75,
+        "pe43711_step_delta": -11,
+        "corrected_dbm": 3.97,
+        "residual_db": -0.0094
+      },
+      {
+        "freq_hz": 900000000.0,
+        "freq_mhz": 900.0,
+        "measured_dbm": 0.74,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -3.2394,
+        "atten_delta_db": -3.25,
+        "pe43711_step_delta": -13,
+        "corrected_dbm": 3.99,
+        "residual_db": 0.0106
+      },
+      {
+        "freq_hz": 950000000.0,
+        "freq_mhz": 950.0,
+        "measured_dbm": 0.62,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -3.3594,
+        "atten_delta_db": -3.25,
+        "pe43711_step_delta": -13,
+        "corrected_dbm": 3.87,
+        "residual_db": -0.1094
+      },
+      {
+        "freq_hz": 1000000000.0,
+        "freq_mhz": 1000.0,
+        "measured_dbm": 0.27,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -3.7094,
+        "atten_delta_db": -3.75,
+        "pe43711_step_delta": -15,
+        "corrected_dbm": 4.02,
+        "residual_db": 0.0406
+      },
+      {
+        "freq_hz": 1500000000.0,
+        "freq_mhz": 1500.0,
+        "measured_dbm": -6.04,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -10.0194,
+        "atten_delta_db": -10.0,
+        "pe43711_step_delta": -40,
+        "corrected_dbm": 3.96,
+        "residual_db": -0.0194
+      },
+      {
+        "freq_hz": 2000000000.0,
+        "freq_mhz": 2000.0,
+        "measured_dbm": -11.0,
+        "target_dbm_1vpp_50ohm": 3.9794,
+        "power_error_db": -14.9794,
+        "atten_delta_db": -15.0,
+        "pe43711_step_delta": -60,
+        "corrected_dbm": 4.0,
+        "residual_db": 0.0206
+      }
+    ],
+    "notes": [
+      "Measured power is treated as direct spectrum-analyzer input power with no 20 dB external attenuator.",
+      "This model is selected only when HostApp output_mode == ram_waveform; NCO-only keeps pe43711_frequency_trim_model.",
+      "PE43711 can only realize the requested trim if the resulting absolute attenuation code remains within 0..127."
+    ]
+  }
+}

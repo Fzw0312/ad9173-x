@@ -39,6 +39,29 @@ if {![file exists $synth_dcp]} {
     error "Synthesis checkpoint not found: $synth_dcp"
 }
 
+proc archive_existing_bit_outputs {build_root bit_file ltx_file tag} {
+    set outputs [list $bit_file $ltx_file]
+    set have_existing 0
+    foreach output $outputs {
+        if {[file exists $output]} {
+            set have_existing 1
+        }
+    }
+    if {!$have_existing} {
+        return
+    }
+
+    set stamp [clock format [clock seconds] -format "%Y%m%d_%H%M%S"]
+    set archive_dir [file join $build_root bit_archive "${stamp}_${tag}"]
+    file mkdir $archive_dir
+    foreach output $outputs {
+        if {[file exists $output]} {
+            file copy -force $output [file join $archive_dir [file tail $output]]
+        }
+    }
+    puts "INFO: archived existing bit outputs to $archive_dir"
+}
+
 file mkdir $build_dir
 cd $build_dir
 set_param general.maxThreads $build_jobs
@@ -56,6 +79,7 @@ catch {report_clock_interaction -file [file join $build_dir post_route_clock_int
 catch {check_timing -verbose -file [file join $build_dir post_route_check_timing.rpt]}
 catch {report_drc -file [file join $build_dir post_route_drc.rpt]}
 catch {report_bus_skew -file [file join $build_dir post_route_bus_skew.rpt]}
+archive_existing_bit_outputs $build_root $bit_file $ltx_file "pre_route_bit"
 catch {write_debug_probes -force $ltx_file}
 write_bitstream -force $bit_file
 

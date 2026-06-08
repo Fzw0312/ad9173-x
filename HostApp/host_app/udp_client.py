@@ -1,4 +1,5 @@
 import json
+import math
 import socket
 import struct
 import time
@@ -16,9 +17,23 @@ VERSION = 1
 HEADER = struct.Struct("<4sBBHIIIII")
 DATA_CHUNK = struct.Struct("<HHIIII")
 DAC_DDS_CONFIG_PREFIX = struct.Struct("<4sBBHI")
-DAC_DDS_CONFIG_SUFFIX = struct.Struct("<HHHHI")
+DAC_DDS_CONFIG_SUFFIX = struct.Struct("<HHHHIBBH")
 SAMPLE_FORMAT_INT16_IQ2 = 1
 DAC_DDS_SAMPLE_RATE_HZ = 983_040_000
+AD9173_NOMINAL_NCO_HZ = 1_474_560_000.0
+AD9173_NCO_CALIBRATION_PPM = 0.6998476000941167
+AD9173_NCO_HZ = AD9173_NOMINAL_NCO_HZ * (1.0 + AD9173_NCO_CALIBRATION_PPM * 1e-6)
+# Main NCO FTW is referenced to the DAC main datapath rate, not the
+# 983.04 MSPS JESD payload rate. This board runs the main datapath at 12x.
+AD9173_MAIN_NCO_HZ = DAC_DDS_SAMPLE_RATE_HZ * 12.0
+AD9173_MAIN_NCO_SIGN = -1.0
+AD9173_NCO_MAX_AMP = 0x50FF
+HMC788_GAIN_DB = 14.0
+PE43711_MAX_ATTEN_DB = 31.75
+PE43711_STEP_DB = 0.25
+CONFIG_FLAG_RESET_PHASE = 0x01
+CONFIG_FLAG_NCO_ONLY = 0x02
+CONFIG_FLAG_RAM_WAVEFORM = 0x04
 
 
 class FrameType(IntEnum):
@@ -48,34 +63,83 @@ def json_payload(payload: dict) -> bytes:
     return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
+def calculate_rf_output_control(target_vpk: float, full_scale_vpk: float) -> tuple[float, int, float]:
+    target_vpk = max(0.01, min(float(target_vpk), 3.0))
+    full_scale_vpk = max(float(full_scale_vpk), 0.001)
+    gain_linear = 10.0 ** (HMC788_GAIN_DB / 20.0)
+    max_dac_for_target = target_vpk * (10.0 ** (PE43711_MAX_ATTEN_DB / 20.0)) / gain_linear
+    dac_vpk = max(0.0, min(full_scale_vpk, max_dac_for_target))
+    pre_atten_vpk = max(dac_vpk * gain_linear, 1e-12)
+    atten_db = max(0.0, min(PE43711_MAX_ATTEN_DB, 20.0 * math.log10(pre_atten_vpk / target_vpk)))
+    code = max(0, min(127, int(round(atten_db / PE43711_STEP_DB))))
+    rounded_atten_db = code * PE43711_STEP_DB
+    return dac_vpk, code, rounded_atten_db
+
+
 def build_dac_dds_config_payload(config: dict, reset_phase: bool = True) -> bytes:
     waveform = config.get("waveform", {})
     channels = list(config.get("channels", []))
+    output_mode = str(config.get("output_mode", "jesd_tone"))
+    nco_only = output_mode == "nco_only"
     sample_rate_hz = float(waveform.get("sample_rate_hz", DAC_DDS_SAMPLE_RATE_HZ))
     if sample_rate_hz <= 0.0:
         sample_rate_hz = float(DAC_DDS_SAMPLE_RATE_HZ)
+    rf = dict(config.get("rf", {}))
+    rf_cal = dict(rf.get("calibration", {}))
+    lf_cal = dict(rf.get("lf_calibration", {}))
+    active_nco_cal = lf_cal if lf_cal.get("enabled") else rf_cal
+    ftw_rate_hz = float(active_nco_cal.get("nco_hz", AD9173_NCO_HZ)) if nco_only else sample_rate_hz
     full_scale_vpk = float(waveform.get("dac_full_scale_vpk", 1.0))
     if full_scale_vpk <= 0.0:
         full_scale_vpk = 1.0
+    output_path = str(rf.get("output_path", "rf"))
+    output_path_sel = 1 if output_path == "lf" else 0
+    target_rf_vpk = float(rf.get("target_amplitude_vpk", 1.0))
+    jesd_main_nco_hz = 0.0 if nco_only else float(rf.get("jesd_main_nco_hz", 0.0))
+    jesd_main_nco_ftw = int(round((AD9173_MAIN_NCO_SIGN * jesd_main_nco_hz / AD9173_MAIN_NCO_HZ) * (1 << 48))) & 0xFFFFFFFFFFFF
+    rf_dac_vpk, auto_rf_atten_code, _rf_atten_db = calculate_rf_output_control(target_rf_vpk, full_scale_vpk)
+    if rf_cal.get("enabled"):
+        rf_atten_code = max(0, min(127, int(rf_cal.get("pe43711_code", auto_rf_atten_code))))
+        rf_cal_amp_code = max(0, min(AD9173_NCO_MAX_AMP, int(rf_cal.get("amp_code", 0))))
+    else:
+        rf_atten_code = max(0, min(127, int(rf.get("pe43711_code", auto_rf_atten_code))))
+        rf_cal_amp_code = 0
+    lf_cal_amp_code = max(0, min(AD9173_NCO_MAX_AMP, int(lf_cal.get("amp_code", 0)))) if lf_cal.get("enabled") else 0
+
+    if output_path_sel == 1:
+        gui_to_dac_map = [None, None, 0, None]
+    else:
+        gui_to_dac_map = [0, None, 1, None]
 
     phase_inc = []
     scales = []
     channel_mask = 0
-    mirror_source_count = len(channels) if len(channels) > 0 else 1
     for index in range(4):
-        source_index = index if index < len(channels) else index % mirror_source_count
-        channel = channels[source_index] if channels else {}
-        enabled = bool(channel.get("enabled", True))
+        source_index = gui_to_dac_map[index]
+        channel = channels[source_index] if source_index is not None and source_index < len(channels) else {}
+        enabled = source_index is not None and bool(channel.get("enabled", True))
         if enabled:
             channel_mask |= (1 << index)
         frequency_hz = float(channel.get("frequency_hz", 0.0)) if enabled else 0.0
         amplitude_vpk = abs(float(channel.get("amplitude_vpk", 0.0))) if enabled else 0.0
-        ftw = int(round((frequency_hz / sample_rate_hz) * (1 << 48))) & 0xFFFFFFFFFFFF
-        scale = int(round(min(amplitude_vpk / full_scale_vpk, 1.0) * 0x7FFF))
+        if output_path_sel == 0 and index == 0 and enabled and not rf_cal.get("enabled"):
+            amplitude_vpk = rf_dac_vpk
+        ftw = int(round((frequency_hz / ftw_rate_hz) * (1 << 48))) & 0xFFFFFFFFFFFF
+        max_scale = AD9173_NCO_MAX_AMP if nco_only else 0x7FFF
+        if output_path_sel == 0 and index == 0 and enabled and rf_cal.get("enabled"):
+            scale = rf_cal_amp_code
+        elif output_path_sel == 1 and index == 2 and enabled and lf_cal.get("enabled"):
+            scale = lf_cal_amp_code
+        else:
+            scale = int(round(min(amplitude_vpk / full_scale_vpk, 1.0) * max_scale))
         phase_inc.append(ftw)
-        scales.append(max(0, min(scale, 0x7FFF)))
+        scales.append(max(0, min(scale, max_scale)))
 
-    flags = 0x01 if reset_phase else 0x00
+    flags = CONFIG_FLAG_NCO_ONLY if nco_only else 0x00
+    if output_mode == "ram_waveform":
+        flags |= CONFIG_FLAG_RAM_WAVEFORM
+    if reset_phase:
+        flags |= CONFIG_FLAG_RESET_PHASE
     payload = DAC_DDS_CONFIG_PREFIX.pack(
         b"K5DC",
         1,
@@ -89,7 +153,10 @@ def build_dac_dds_config_payload(config: dict, reset_phase: bool = True) -> byte
         scales[1],
         scales[2],
         scales[3],
-        0,
+        jesd_main_nco_ftw & 0xFFFFFFFF,
+        rf_atten_code,
+        output_path_sel,
+        (jesd_main_nco_ftw >> 32) & 0xFFFF,
     )
     return payload
 
@@ -186,6 +253,41 @@ class UdpWaveformClient:
                     sock.sendto(frame, broadcast_target)
                     sent += 1
         return sent
+
+    def _next_sequence(self) -> int:
+        current = self.sequence
+        self.sequence = (self.sequence + 1) & 0xFFFFFFFF
+        if self.sequence == 0:
+            self.sequence = 1
+        return current
+
+
+class UdpRuntimeConfigStreamer:
+    """Keep one UDP socket open for fast runtime NCO CONFIG updates."""
+
+    def __init__(self, network: NetworkSettings):
+        self.network = network
+        self.sequence = 1
+        self.target = (self.network.target_ip, int(self.network.target_port))
+        target_ip = self.network.target_ip.strip().lower()
+        self.target_is_broadcast = target_ip in ("255.255.255.255", "<broadcast>")
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        bind_ip = getattr(self.network, "local_ip", "").strip()
+        if self.network.local_port or bind_ip:
+            self.sock.bind((bind_ip, int(self.network.local_port)))
+        if self.target_is_broadcast:
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+    def send_dac_config(self, config: dict) -> int:
+        return self.send_dac_config_payload(build_dac_dds_config_payload(config))
+
+    def send_dac_config_payload(self, payload: bytes) -> int:
+        frame = build_frame(FrameType.CONFIG, self._next_sequence(), payload)
+        self.sock.sendto(frame, self.target)
+        return 1
+
+    def close(self) -> None:
+        self.sock.close()
 
     def _next_sequence(self) -> int:
         current = self.sequence

@@ -36,12 +36,36 @@ if {![file exists $dcp_file]} {
     error "Route checkpoint not found: $dcp_file"
 }
 
+proc archive_existing_bit_outputs {build_root bit_file ltx_file tag} {
+    set outputs [list $bit_file $ltx_file]
+    set have_existing 0
+    foreach output $outputs {
+        if {[file exists $output]} {
+            set have_existing 1
+        }
+    }
+    if {!$have_existing} {
+        return
+    }
+
+    set stamp [clock format [clock seconds] -format "%Y%m%d_%H%M%S"]
+    set archive_dir [file join $build_root bit_archive "${stamp}_${tag}"]
+    file mkdir $archive_dir
+    foreach output $outputs {
+        if {[file exists $output]} {
+            file copy -force $output [file join $archive_dir [file tail $output]]
+        }
+    }
+    puts "INFO: archived existing bit outputs to $archive_dir"
+}
+
 open_checkpoint $dcp_file
 if {$run_reports} {
     report_timing_summary -file [file join $build_dir post_route_reopen_timing.rpt]
     catch {check_timing -verbose -file [file join $build_dir post_route_reopen_check_timing.rpt]}
     catch {report_drc -file [file join $build_dir post_route_reopen_drc.rpt]}
 }
+archive_existing_bit_outputs $build_root $bit_file $ltx_file "pre_write_bit"
 catch {write_debug_probes -force $ltx_file}
 write_bitstream -force $bit_file
 close_design

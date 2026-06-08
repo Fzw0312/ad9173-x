@@ -2,6 +2,8 @@
 
 module tb_k5wg_udp_dac_config_rx;
 
+    localparam integer WAVE_ADDR_WIDTH = 15;
+
     reg clk = 1'b0;
     reg rst = 1'b1;
     reg [7:0] rx_data = 8'd0;
@@ -10,6 +12,8 @@ module tb_k5wg_udp_dac_config_rx;
 
     wire cfg_valid;
     wire cfg_reset_phase;
+    wire cfg_nco_only;
+    wire cfg_ram_mode;
     wire [47:0] cfg_phase_inc0;
     wire [47:0] cfg_phase_inc1;
     wire [47:0] cfg_phase_inc2;
@@ -18,10 +22,13 @@ module tb_k5wg_udp_dac_config_rx;
     wire [15:0] cfg_scale1;
     wire [15:0] cfg_scale2;
     wire [15:0] cfg_scale3;
+    wire [47:0] cfg_main_nco_ftw;
+    wire [6:0] cfg_rf_atten_code;
+    wire cfg_output_path_sel;
     wire wave_wr_en;
-    wire [11:0] wave_wr_addr;
+    wire [WAVE_ADDR_WIDTH-1:0] wave_wr_addr;
     wire [31:0] wave_wr_data;
-    wire [12:0] wave_total_samples;
+    wire [WAVE_ADDR_WIDTH:0] wave_total_samples;
     wire wave_commit_toggle;
     wire [31:0] packet_count;
     wire [31:0] config_count;
@@ -34,7 +41,7 @@ module tb_k5wg_udp_dac_config_rx;
     reg seen_cfg;
     reg seen_commit;
     reg [31:0] wave_write_count;
-    reg [11:0] last_wave_addr;
+    reg [WAVE_ADDR_WIDTH-1:0] last_wave_addr;
     reg [31:0] last_wave_data;
     reg last_commit_toggle = 1'b0;
 
@@ -42,7 +49,8 @@ module tb_k5wg_udp_dac_config_rx;
 
     k5wg_udp_dac_config_rx #(
         .FPGA_IP(32'hC0A8_010A),
-        .UDP_PORT(16'd5005)
+        .UDP_PORT(16'd5005),
+        .WAVE_ADDR_WIDTH(WAVE_ADDR_WIDTH)
     ) u_dut (
         .clk            (clk),
         .rst            (rst),
@@ -51,6 +59,8 @@ module tb_k5wg_udp_dac_config_rx;
         .rx_error       (rx_error),
         .cfg_valid      (cfg_valid),
         .cfg_reset_phase(cfg_reset_phase),
+        .cfg_nco_only   (cfg_nco_only),
+        .cfg_ram_mode   (cfg_ram_mode),
         .cfg_phase_inc0 (cfg_phase_inc0),
         .cfg_phase_inc1 (cfg_phase_inc1),
         .cfg_phase_inc2 (cfg_phase_inc2),
@@ -59,6 +69,9 @@ module tb_k5wg_udp_dac_config_rx;
         .cfg_scale1     (cfg_scale1),
         .cfg_scale2     (cfg_scale2),
         .cfg_scale3     (cfg_scale3),
+        .cfg_main_nco_ftw(cfg_main_nco_ftw),
+        .cfg_rf_atten_code(cfg_rf_atten_code),
+        .cfg_output_path_sel(cfg_output_path_sel),
         .wave_wr_en     (wave_wr_en),
         .wave_wr_addr   (wave_wr_addr),
         .wave_wr_data   (wave_wr_data),
@@ -84,6 +97,7 @@ module tb_k5wg_udp_dac_config_rx;
             $finish;
         end
         if (!cfg_reset_phase ||
+            !cfg_ram_mode ||
             cfg_phase_inc0 != 48'h010203040506 ||
             cfg_phase_inc1 != 48'h112233445566 ||
             cfg_phase_inc2 != 48'h5566778899aa ||
@@ -92,12 +106,16 @@ module tb_k5wg_udp_dac_config_rx;
             cfg_scale1 != 16'h2222 ||
             cfg_scale2 != 16'h3333 ||
             cfg_scale3 != 16'h4444 ||
+            cfg_main_nco_ftw != 48'he31155555555 ||
+            cfg_rf_atten_code != 7'h55 ||
+            cfg_output_path_sel != 1'b1 ||
             config_count != 32'd1) begin
-            $display("ERROR: decoded config mismatch cfg=%b reset=%b inc=%08x/%08x/%08x/%08x scale=%04x/%04x/%04x/%04x count=%0d status=%08x",
-                     cfg_valid, cfg_reset_phase,
+            $display("ERROR: decoded config mismatch cfg=%b reset=%b ram=%b inc=%08x/%08x/%08x/%08x scale=%04x/%04x/%04x/%04x rf=%02x path=%b count=%0d status=%08x",
+                     cfg_valid, cfg_reset_phase, cfg_ram_mode,
                      cfg_phase_inc0, cfg_phase_inc1,
                      cfg_phase_inc2, cfg_phase_inc3,
                      cfg_scale0, cfg_scale1, cfg_scale2, cfg_scale3,
+                     cfg_rf_atten_code, cfg_output_path_sel,
                      config_count, status_dbg);
             $finish;
         end
@@ -106,8 +124,8 @@ module tb_k5wg_udp_dac_config_rx;
         repeat (4) @(posedge clk);
         if (data_count != 32'd1 ||
             wave_write_count != 32'd2 ||
-            wave_total_samples != 13'd2 ||
-            last_wave_addr != 12'd1 ||
+            wave_total_samples != 2 ||
+            last_wave_addr != 1 ||
             last_wave_data != 32'h44443333) begin
             $display("ERROR: data frame mismatch data_count=%0d writes=%0d total=%0d last=%0d/%08x status=%08x",
                      data_count, wave_write_count, wave_total_samples,
@@ -123,6 +141,19 @@ module tb_k5wg_udp_dac_config_rx;
             !seen_commit) begin
             $display("ERROR: commit frame mismatch commit_count=%0d toggle=%b seen=%b status=%08x",
                      commit_count, wave_commit_toggle, seen_commit, status_dbg);
+            $finish;
+        end
+
+        send_high_addr_data_frame;
+        repeat (4) @(posedge clk);
+        if (data_count != 32'd2 ||
+            wave_write_count != 32'd3 ||
+            wave_total_samples != 16'd32768 ||
+            last_wave_addr != 15'd32767 ||
+            last_wave_data != 32'h66665555) begin
+            $display("ERROR: high address data mismatch data_count=%0d writes=%0d total=%0d last=%0d/%08x status=%08x",
+                     data_count, wave_write_count, wave_total_samples,
+                     last_wave_addr, last_wave_data, status_dbg);
             $finish;
         end
 
@@ -145,7 +176,7 @@ module tb_k5wg_udp_dac_config_rx;
             seen_cfg <= 1'b0;
             seen_commit <= 1'b0;
             wave_write_count <= 32'd0;
-            last_wave_addr <= 12'd0;
+            last_wave_addr <= {WAVE_ADDR_WIDTH{1'b0}};
             last_wave_data <= 32'd0;
             last_commit_toggle <= 1'b0;
         end else if (cfg_valid) begin
@@ -193,12 +224,8 @@ module tb_k5wg_udp_dac_config_rx;
             for (i = 0; i < 7; i = i + 1) send_byte(8'h55);
             send_byte(8'hd5);
             send_eth_ip_udp_header(16'd5005);
-            send_k5wg_header(8'h02, 32'd48);
+            send_k5wg_header(8'h02, 32'd52);
             send_k5dc_payload(reset_phase);
-            send_byte(8'h00);
-            send_byte(8'h00);
-            send_byte(8'h00);
-            send_byte(8'h00);
             end_frame;
         end
     endtask
@@ -208,7 +235,7 @@ module tb_k5wg_udp_dac_config_rx;
             for (i = 0; i < 7; i = i + 1) send_byte(8'h55);
             send_byte(8'hd5);
             send_eth_ip_udp_header(16'd5006);
-            send_k5wg_header(8'h02, 32'd48);
+            send_k5wg_header(8'h02, 32'd52);
             send_k5dc_payload(1'b0);
             end_frame;
         end
@@ -288,7 +315,7 @@ module tb_k5wg_udp_dac_config_rx;
         begin
             send_byte(8'h4b); send_byte(8'h35); send_byte(8'h44); send_byte(8'h43);
             send_byte(8'h01);
-            send_byte(reset_phase ? 8'h01 : 8'h00);
+            send_byte((reset_phase ? 8'h01 : 8'h00) | 8'h04);
             send_byte(8'h0f); send_byte(8'h00);
             send_byte(8'h00); send_byte(8'h00); send_byte(8'h9b); send_byte(8'h3a);
             send_word48_le(48'h010203040506);
@@ -299,7 +326,28 @@ module tb_k5wg_udp_dac_config_rx;
             send_word16_le(16'h2222);
             send_word16_le(16'h3333);
             send_word16_le(16'h4444);
+            send_word32_le(32'h55555555);
+            send_byte(8'h55);
+            send_byte(8'h01);
+            send_word16_le(16'he311);
+        end
+    endtask
+
+    task send_high_addr_data_frame;
+        begin
+            for (i = 0; i < 7; i = i + 1) send_byte(8'h55);
+            send_byte(8'hd5);
+            send_eth_ip_udp_header(16'd5005);
+            send_k5wg_header(8'h03, 32'd20);
+            send_word16_le(16'h0003);
+            send_word16_le(16'h0001);
+            send_word32_le(32'd32767);
+            send_word32_le(32'd1);
+            send_word32_le(32'd32768);
             send_word32_le(32'd0);
+            send_word16_le(16'h5555);
+            send_word16_le(16'h6666);
+            end_frame;
         end
     endtask
 

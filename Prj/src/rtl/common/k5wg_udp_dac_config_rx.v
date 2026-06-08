@@ -1,25 +1,31 @@
 `timescale 1ns/1ps
 
-// Lightweight UDP parser for HostApp DAC DDS control.
+// HostApp UDP 配置解析模块。
 //
-// This is not a general Ethernet MAC.  It consumes the byte stream recovered
-// from RGMII RX and recognizes one hardware-friendly K5WG CONFIG payload:
+// 这个模块不是完整通用的以太网 MAC，而是直接消费 RGMII RX 恢复出来的
+// 字节流，只识别当前工程使用的 K5WG/K5DC 二进制协议：
 //
 //   Ethernet/IPv4/UDP(dst port 5005)/K5WG header/K5DC binary payload
 //
-// K5WG JSON frames are deliberately ignored.  The binary payload is:
+// JSON 帧会被忽略；真正控制 DAC 的是 K5DC 二进制 payload：
 //   0x00  char[4]  "K5DC"
 //   0x04  u8       version = 1
-//   0x05  u8       flags, bit0 requests DDS phase reset
-//   0x06  u16      channel mask, currently informational
-//   0x08  u32      sample_rate_hz, rounded, informational
-//   0x0c  u48[4]   DAC0..DAC3 phase increments
-//   0x24  u16[4]   DAC0..DAC3 unsigned Q1.15 amplitude scales
-//   0x2c  u32      reserved
+//   0x05  u8       flags，bit0 请求 DDS 相位复位
+//                    bit1 选择 AD9173 NCO-only/DDS 单音运行时输出
+//                    bit2 表示这是 waveform-RAM/任意波形 CONFIG
+//   0x06  u16      channel mask，目前只作为信息保留
+//   0x08  u32      sample_rate_hz，HostApp 侧填入，RTL 当前不直接使用
+//   0x0c  u48[4]   DAC0..DAC3 的 FPGA DDS 相位累加步进
+//   0x24  u16[4]   DAC0..DAC3 的 unsigned Q1.15 幅度缩放系数
+//   0x2c  u32      JESD main NCO FTW[31:0]，用于 RF 高频搬移
+//   0x30  u8       RF PE43711 衰减码，0.25 dB/LSB
+//   0x31  u8       输出通路选择，0=RF/DAC0，1=LF/DAC1
+//   0x32  u16      JESD main NCO FTW[47:32]
 //
-// K5WG DATA frames carry int16 little-endian CH0/CH1 sample pairs. This parser
-// writes up to 2**WAVE_ADDR_WIDTH sample pairs and toggles wave_commit_toggle
-// when the host sends a COMMIT frame.
+// K5WG DATA 帧携带 int16 小端 CH0/CH1 样点对，用于写入 RAM 任意波形。
+// 每个 RAM word 为 32 bit：低 16 bit 和高 16 bit 分别存一组有符号样点。
+// 本模块最多写入 2**WAVE_ADDR_WIDTH 个样点对；HostApp 发送 COMMIT 帧后，
+// wave_commit_toggle 翻转，pattern_gen_256.v 再切换到新写入的波形。
 module k5wg_udp_dac_config_rx #(
     parameter [31:0] FPGA_IP = 32'hC0A8_010A,
     parameter [15:0] UDP_PORT = 16'd5005,
@@ -33,6 +39,8 @@ module k5wg_udp_dac_config_rx #(
 
     output reg         cfg_valid,
     output reg         cfg_reset_phase,
+    output reg         cfg_nco_only,
+    output reg         cfg_ram_mode,
     output reg  [47:0] cfg_phase_inc0,
     output reg  [47:0] cfg_phase_inc1,
     output reg  [47:0] cfg_phase_inc2,
@@ -41,6 +49,9 @@ module k5wg_udp_dac_config_rx #(
     output reg  [15:0] cfg_scale1,
     output reg  [15:0] cfg_scale2,
     output reg  [15:0] cfg_scale3,
+    output reg  [47:0] cfg_main_nco_ftw,
+    output reg  [6:0]  cfg_rf_atten_code,
+    output reg         cfg_output_path_sel,
     output reg         wave_wr_en,
     output reg  [WAVE_ADDR_WIDTH-1:0] wave_wr_addr,
     output reg  [31:0] wave_wr_data,
@@ -57,10 +68,11 @@ module k5wg_udp_dac_config_rx #(
     localparam [1:0] ST_IDLE  = 2'd0;
     localparam [1:0] ST_FRAME = 2'd1;
 
+    // 固定协议偏移。这里假设没有 VLAN/IPv4 option，HostApp 也按这个格式发包。
     localparam integer UDP_PAYLOAD_OFFSET = 42;
     localparam integer K5WG_HEADER_LEN    = 28;
     localparam integer K5DC_OFFSET        = UDP_PAYLOAD_OFFSET + K5WG_HEADER_LEN;
-    localparam integer K5DC_LAST_OFFSET   = K5DC_OFFSET + 48 - 1;
+    localparam integer K5DC_LAST_OFFSET   = K5DC_OFFSET + 52 - 1;
     localparam integer DATA_HEADER_LEN     = 20;
     localparam integer DATA_SAMPLE_OFFSET  = K5DC_OFFSET + DATA_HEADER_LEN;
     localparam integer MAX_WAVE_SAMPLES    = (1 << WAVE_ADDR_WIDTH);
@@ -90,6 +102,9 @@ module k5wg_udp_dac_config_rx #(
     reg [15:0] temp_scale1;
     reg [15:0] temp_scale2;
     reg [15:0] temp_scale3;
+    reg [47:0] temp_main_nco_ftw;
+    reg [6:0]  temp_rf_atten_code;
+    reg        temp_output_path_sel;
     reg [15:0] data_flags;
     reg [15:0] data_sample_format;
     reg [31:0] data_sample_offset;
@@ -119,6 +134,7 @@ module k5wg_udp_dac_config_rx #(
         data_count[3:0]
     };
 
+    // 限制 HostApp 声明的波形长度，防止超过本地 RAM 深度。
     function [WAVE_ADDR_WIDTH:0] clip_wave_samples;
         input [31:0] value;
         begin
@@ -132,6 +148,7 @@ module k5wg_udp_dac_config_rx #(
         end
     endfunction
 
+    // 新帧开始时清空协议检查状态和临时字段。
     task reset_frame_checks;
         begin
             eth_type_ok       <= 1'b1;
@@ -154,6 +171,9 @@ module k5wg_udp_dac_config_rx #(
             temp_scale1       <= 16'd0;
             temp_scale2       <= 16'd0;
             temp_scale3       <= 16'd0;
+            temp_main_nco_ftw <= 48'd0;
+            temp_rf_atten_code <= 7'd127;
+            temp_output_path_sel <= 1'b0;
             data_flags        <= 16'd0;
             data_sample_format <= 16'd0;
             data_sample_offset <= 32'd0;
@@ -164,6 +184,8 @@ module k5wg_udp_dac_config_rx #(
         end
     endtask
 
+    // 逐字节解析一帧数据。CONFIG 帧在最后一个字段到达时更新 DAC 配置；
+    // DATA 帧每收齐 4 个字节就写入一个 32-bit RAM 样点 word。
     task process_frame_byte;
         input [15:0] idx;
         input [7:0]  b;
@@ -246,16 +268,27 @@ module k5wg_udp_dac_config_rx #(
                 K5DC_OFFSET + 41: temp_scale2[15:8] <= b;
                 K5DC_OFFSET + 42: temp_scale3[7:0] <= b;
                 K5DC_OFFSET + 43: temp_scale3[15:8] <= b;
+                K5DC_OFFSET + 44: temp_main_nco_ftw[7:0] <= b;
+                K5DC_OFFSET + 45: temp_main_nco_ftw[15:8] <= b;
+                K5DC_OFFSET + 46: temp_main_nco_ftw[23:16] <= b;
+                K5DC_OFFSET + 47: temp_main_nco_ftw[31:24] <= b;
+                K5DC_OFFSET + 48: temp_rf_atten_code <= b[6:0];
+                K5DC_OFFSET + 49: temp_output_path_sel <= b[0];
+                K5DC_OFFSET + 50: temp_main_nco_ftw[39:32] <= b;
+                K5DC_OFFSET + 51: temp_main_nco_ftw[47:40] <= b;
                 default: begin
                 end
             endcase
 
+            // CONFIG 帧：所有校验都通过后，把临时字段一次性提交到 cfg_*。
             if ((idx == K5DC_LAST_OFFSET) && (frame_type == 8'h02)) begin
                 if (eth_type_ok && ipv4_proto_ok && dst_ip_ok &&
                     udp_port_ok && k5wg_ok && k5dc_ok &&
                     k5dc_version_ok) begin
                     cfg_valid      <= 1'b1;
                     cfg_reset_phase <= payload_flags[0];
+                    cfg_nco_only   <= payload_flags[1];
+                    cfg_ram_mode   <= payload_flags[2];
                     cfg_phase_inc0 <= temp_phase_inc0;
                     cfg_phase_inc1 <= temp_phase_inc1;
                     cfg_phase_inc2 <= temp_phase_inc2;
@@ -264,12 +297,16 @@ module k5wg_udp_dac_config_rx #(
                     cfg_scale1     <= temp_scale1;
                     cfg_scale2     <= temp_scale2;
                     cfg_scale3     <= temp_scale3;
+                    cfg_main_nco_ftw <= {b, temp_main_nco_ftw[39:0]};
+                    cfg_rf_atten_code <= temp_rf_atten_code;
+                    cfg_output_path_sel <= temp_output_path_sel;
                     config_count   <= config_count + 1'b1;
                 end else begin
                     drop_count <= drop_count + 1'b1;
                 end
             end
 
+            // DATA 帧：写 RAM 任意波形。data_sample_format=1 表示 int16 样点对。
             if (frame_type == 8'h03) begin
                 case (idx)
                     K5DC_OFFSET + 0: data_flags[7:0] <= b;
@@ -319,6 +356,7 @@ module k5wg_udp_dac_config_rx #(
                             default: begin
                                 wave_word_next = {b, temp_wave_word[23:0]};
                                 temp_wave_word[31:24] <= b;
+                                // 第 4 个字节到达时拼成完整 32-bit word 并写 RAM。
                                 wave_wr_en <= 1'b1;
                                 wave_wr_addr <= sample_addr[WAVE_ADDR_WIDTH-1:0];
                                 wave_wr_data <= wave_word_next;
@@ -339,6 +377,8 @@ module k5wg_udp_dac_config_rx #(
             frame_active    <= 1'b0;
             cfg_valid       <= 1'b0;
             cfg_reset_phase <= 1'b0;
+            cfg_nco_only    <= 1'b0;
+            cfg_ram_mode     <= 1'b0;
             cfg_phase_inc0  <= 48'h053555555555;
             cfg_phase_inc1  <= 48'h07d000000000;
             cfg_phase_inc2  <= 48'h053555555555;
@@ -347,6 +387,9 @@ module k5wg_udp_dac_config_rx #(
             cfg_scale1      <= 16'h7fff;
             cfg_scale2      <= 16'h7fff;
             cfg_scale3      <= 16'h7fff;
+            cfg_main_nco_ftw <= 48'd0;
+            cfg_rf_atten_code <= 7'd127;
+            cfg_output_path_sel <= 1'b0;
             wave_wr_en      <= 1'b0;
             wave_wr_addr    <= {WAVE_ADDR_WIDTH{1'b0}};
             wave_wr_data    <= 32'd0;

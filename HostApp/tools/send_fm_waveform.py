@@ -10,7 +10,7 @@ import numpy as np
 HOST_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HOST_ROOT))
 
-from host_app.models import ChannelSettings, NetworkSettings, WaveformSettings, build_config_payload
+from host_app.models import MAX_WAVEFORM_SAMPLES, ChannelSettings, NetworkSettings, WaveformSettings, build_config_payload
 from host_app.udp_client import UdpWaveformClient
 
 
@@ -101,7 +101,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--local-port", type=int, default=0)
     parser.add_argument("--max-datagram-bytes", type=int, default=1200)
     parser.add_argument("--sample-rate-hz", type=float, default=983_040_000.0)
-    parser.add_argument("--sample-count", type=int, default=4096)
+    parser.add_argument("--sample-count", type=int, default=MAX_WAVEFORM_SAMPLES)
     parser.add_argument("--full-scale-vpk", type=float, default=1.0)
     parser.add_argument("--amplitude-vpk", type=float, default=0.55)
     parser.add_argument("--carrier-hz", type=float, default=80_160_000.0)
@@ -117,8 +117,8 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    if args.sample_count <= 0 or args.sample_count > 4096:
-        raise ValueError("sample-count must be in 1..4096 for the current FPGA waveform RAM")
+    if args.sample_count <= 0 or args.sample_count > MAX_WAVEFORM_SAMPLES:
+        raise ValueError(f"sample-count must be in 1..{MAX_WAVEFORM_SAMPLES} for the current FPGA waveform RAM")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")

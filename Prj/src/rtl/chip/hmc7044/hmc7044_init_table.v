@@ -1,3 +1,9 @@
+// HMC7044 时钟芯片初始化表。
+//
+// 这个文件只描述“要写哪些寄存器”，真正的 SPI 写入动作由
+// hmc7044_init.v 里的 spi_init_engine 完成。上电流程中会先配置
+// HMC7044，再配置 AD9173 和 JESD IP，因为 DAC 和 FPGA JESD 都依赖
+// HMC7044 输出的参考时钟/SYSREF。
 module hmc7044_init_table (
     input  wire [7:0] addr,
     output reg  [31:0] cmd
@@ -7,6 +13,15 @@ module hmc7044_init_table (
     localparam [7:0] OP_WAIT_MS = 8'h02;
     localparam [7:0] OP_END     = 8'hff;
 
+    // DAC 相关时钟规划：
+    //   ch6  -> DAC_CLKIN_P/N：491.52 MHz，送入 AD9173 时钟 PLL
+    //   ch7  -> SYSREF_P/N   ：7.68 MHz，送入 AD9173，用于 JESD subclass 1
+    //   ch10 -> BR40_P/N     ：245.76 MHz，送 FPGA GT/JESD 参考时钟
+    //   ch13 -> SYSREF2_P/N  ：7.68 MHz，送 FPGA fabric
+    //
+    // FPGA JESD core 工作在 245.76 MHz，每拍每个 DAC converter 送 4 个样点，
+    // 因此 JESD payload 样点率是 983.04 MSPS。AD9173 内部 main datapath
+    // 再做 12x 插值。
     always @(*) begin
         case (addr)
             8'd0:  cmd = {OP_WRITE, 16'h00c8, 8'h00};
@@ -28,10 +43,10 @@ module hmc7044_init_table (
             8'd16: cmd = {OP_WRITE, 16'h00a5, 8'h06};
             8'd17: cmd = {OP_WRITE, 16'h00a8, 8'h06};
             8'd18: cmd = {OP_WRITE, 16'h00b0, 8'h04};
-            // Board clock sources:
-            // - CLKIN0 <- U11 differential 122.88 MHz reference
+            // 板级输入时钟来源：
+            // - CLKIN0 <- U11 差分 122.88 MHz 参考
             // - OSCIN  <- U10 VCXO
-            // CLKIN1/FIN is not populated on this board, so PLL1 must not select it.
+            // 本板 CLKIN1/FIN 未装配，所以 PLL1 不能选择 CLKIN1。
             8'd19: cmd = {OP_WRITE, 16'h0005, 8'h01};
             // Make the global output-pair enables explicit instead of relying
             // on the reset default. Bit 2 gates the ch4/ch5 pair used by the
@@ -76,15 +91,15 @@ module hmc7044_init_table (
             8'd50: cmd = {OP_WRITE, 16'h0052, 8'h00};
             8'd51: cmd = {OP_WRITE, 16'h0053, 8'h00};
             8'd52: cmd = {OP_WAIT_MS, 16'h0000, 8'd10};
-            // Board-level HMC7044 output routing:
-            // ch4  -> TOAD6688_CLK_P/N  : 2949.12 MHz AD6688 sample clock
-            // ch6  -> DAC_CLKIN_P/N     : 491.52 MHz DAC clock
-            // ch7  -> SYSREF_P/N        : 7.68 MHz DAC SYSREF
+            // HMC7044 板级输出路由：
+            // ch4  -> TOAD6688_CLK_P/N  : 2949.12 MHz AD6688 采样钟
+            // ch6  -> DAC_CLKIN_P/N     : 491.52 MHz AD9173 DAC 时钟
+            // ch7  -> SYSREF_P/N        : 7.68 MHz AD9173 SYSREF
             // ch10 -> BR40_P/N          : 245.76 MHz FPGA JESD refclk
             // ch11 -> SYSREF3_P/N       : 7.68 MHz ADC SYSREF
             // ch13 -> SYSREF2_P/N       : 7.68 MHz FPGA SYSREF
-            // With the output mux selecting the fundamental VCO clock, the
-            // datasheet says to set the unused channel divider to 0.
+            // 当输出 mux 选择 fundamental VCO 路径时，未使用的通道分频器
+            // 按数据手册要求写 0。
             8'd53: cmd = {OP_WRITE, 16'h00f1, 8'h00};
             8'd54: cmd = {OP_WRITE, 16'h00f2, 8'h00};
             // AD6688 sample clock is AC-coupled directly from HMC7044 ch4.

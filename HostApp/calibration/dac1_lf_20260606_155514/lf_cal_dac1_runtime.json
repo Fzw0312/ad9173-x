@@ -1,0 +1,327 @@
+{
+  "version": 1,
+  "created_at": "20260606_155514",
+  "path": "dac1_lf_direct_nco",
+  "channel": "DAC1/LF",
+  "frequency_range_hz": [
+    0.001,
+    10000000.0
+  ],
+  "calibrated_floor_hz": 500000.0,
+  "calibrated_floor_behavior": "Frequencies below calibrated_floor_hz reuse the calibrated_floor_hz gain/correction.",
+  "amplitude_unit": "Vpk",
+  "display_amplitude_unit": "Vpp",
+  "nco_hz": 1474561031.9672773,
+  "preferred_amp_code": 16588,
+  "nco_max_amp_code": 20735,
+  "points": [
+    {
+      "freq_hz": 500000.0,
+      "raw_vpk": 1.2454666666666667,
+      "raw_vpp": 2.4909333333333334,
+      "measured_freq_hz": 500252.4666666667,
+      "amp_code": 16588,
+      "ftw": "0x001638E2894D"
+    },
+    {
+      "freq_hz": 1000000.0,
+      "raw_vpk": 1.2454666666666667,
+      "raw_vpp": 2.4909333333333334,
+      "measured_freq_hz": 999833.1333333333,
+      "amp_code": 16588,
+      "ftw": "0x002C71C5129A"
+    },
+    {
+      "freq_hz": 2000000.0,
+      "raw_vpk": 1.2627666666666666,
+      "raw_vpp": 2.525533333333333,
+      "measured_freq_hz": 1997933.3333333333,
+      "amp_code": 16588,
+      "ftw": "0x0058E38A2534"
+    },
+    {
+      "freq_hz": 5000000.0,
+      "raw_vpk": 1.3585,
+      "raw_vpp": 2.717,
+      "measured_freq_hz": 4995026.666666667,
+      "amp_code": 16588,
+      "ftw": "0x00DE38D95D01"
+    },
+    {
+      "freq_hz": 8000000.0,
+      "raw_vpk": 1.5437666666666667,
+      "raw_vpp": 3.0875333333333335,
+      "measured_freq_hz": 7997740.0,
+      "amp_code": 16588,
+      "ftw": "0x01638E2894CE"
+    },
+    {
+      "freq_hz": 10000000.0,
+      "raw_vpk": 1.7404666666666666,
+      "raw_vpp": 3.480933333333333,
+      "measured_freq_hz": 10000840.0,
+      "amp_code": 16588,
+      "ftw": "0x01BC71B2BA02"
+    }
+  ],
+  "amplitude_correction_model": {
+    "type": "correction_factor_linear_v1",
+    "source": "dac1_lf_closed_loop_scope_sweep",
+    "created_at": "20260606_160958",
+    "description": "DAC1 LF direct-output correction. Final amp_code is interpolated over frequency and target_vpp.",
+    "min_correction_factor": 0.2,
+    "max_correction_factor": 5.0,
+    "points": [
+      {
+        "freq_hz": 500000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 0.4240799887558221,
+        "measured_vpp": 0.13085714285714287,
+        "old_correction_factor": 0.5549389567147615
+      },
+      {
+        "freq_hz": 500000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 0.8077055623476896,
+        "measured_vpp": 0.30628571428571433,
+        "old_correction_factor": 0.8246289169873556
+      },
+      {
+        "freq_hz": 500000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 0.9454923651491515,
+        "measured_vpp": 1.05765,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 500000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 0.9966115208291809,
+        "measured_vpp": 2.0067999999999997,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 500000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.0008507231146475,
+        "measured_vpp": 2.9974499999999997,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 1000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 0.4333962575168247,
+        "measured_vpp": 0.13165714285714286,
+        "old_correction_factor": 0.5705971298964366
+      },
+      {
+        "freq_hz": 1000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 0.8038788712254442,
+        "measured_vpp": 0.3062285714285714,
+        "old_correction_factor": 0.8205689277899344
+      },
+      {
+        "freq_hz": 1000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 0.9681632055467426,
+        "measured_vpp": 0.9750624999999999,
+        "old_correction_factor": 1.0,
+        "correction_factor_before_key_amp_align_20260606_175720": 0.9440196356084207,
+        "measured_vpp_before_key_amp_align_20260606_175720": 1.0593,
+        "source": "key_amplitude_alignment",
+        "updated_at": "20260606_175720"
+      },
+      {
+        "freq_hz": 1000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 0.9957927755234136,
+        "measured_vpp": 2.00845,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 1000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.0011346192351331,
+        "measured_vpp": 2.9966,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 2000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 0.4391987218363506,
+        "measured_vpp": 0.13117142857142858,
+        "old_correction_factor": 0.5761032377001959
+      },
+      {
+        "freq_hz": 2000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 0.815040967840191,
+        "measured_vpp": 0.3041142857142857,
+        "old_correction_factor": 0.8262186725419994
+      },
+      {
+        "freq_hz": 2000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 0.9485416172634573,
+        "measured_vpp": 1.0542500000000001,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 2000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 0.9987266235549673,
+        "measured_vpp": 2.0025500000000003,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 2000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 0.9971746717633372,
+        "measured_vpp": 3.0085,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 5000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 0.4349650968161157,
+        "measured_vpp": 0.1316857142857143,
+        "old_correction_factor": 0.5727868946358508
+      },
+      {
+        "freq_hz": 5000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 0.7869294761298058,
+        "measured_vpp": 0.3142857142857143,
+        "old_correction_factor": 0.8244023083264633
+      },
+      {
+        "freq_hz": 5000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 0.9609334344023099,
+        "measured_vpp": 0.9831875,
+        "old_correction_factor": 1.0,
+        "correction_factor_before_key_amp_align_20260606_175720": 0.9447777410364211,
+        "measured_vpp_before_key_amp_align_20260606_175720": 1.0584500000000001,
+        "source": "key_amplitude_alignment",
+        "updated_at": "20260606_175720"
+      },
+      {
+        "freq_hz": 5000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 0.9961895748760989,
+        "measured_vpp": 2.00765,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 5000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.005109305636988,
+        "measured_vpp": 2.98475,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 8000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 0.43625379196470127,
+        "measured_vpp": 0.1309142857142857,
+        "old_correction_factor": 0.5711185356520746
+      },
+      {
+        "freq_hz": 8000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 0.7772085540708431,
+        "measured_vpp": 0.3113714285714286,
+        "old_correction_factor": 0.8066684592632427
+      },
+      {
+        "freq_hz": 8000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 0.933053417308141,
+        "measured_vpp": 1.07175,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 8000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 0.9821012055292299,
+        "measured_vpp": 2.03645,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 8000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.004520341536916,
+        "measured_vpp": 2.9865000000000004,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.1,
+        "correction_factor": 0.5011261449909135,
+        "measured_vpp": 0.11837142857142857,
+        "old_correction_factor": 0.5931901767706727
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 0.3,
+        "correction_factor": 0.8247052082410443,
+        "measured_vpp": 0.27825,
+        "old_correction_factor": 0.8125677139761646,
+        "old_correction_factor_before_20260606_dual_verify": 0.7966350137021221,
+        "measured_vpp_before_20260606_dual_verify": 0.306,
+        "source": "dual_rf_lf_verify_secant_fix",
+        "updated_at": "20260606_174142",
+        "secant_inputs": {
+          "f0": 0.7966350137021221,
+          "y0": 0.27825,
+          "f1": 0.8589056751505358,
+          "y1": 0.3265,
+          "target_vpp": 0.3
+        }
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 1.0,
+        "correction_factor": 0.968028229832844,
+        "measured_vpp": 0.9645,
+        "old_correction_factor": 1.0,
+        "correction_factor_before_key_amp_align_20260606_175720": 0.9336632276737781,
+        "measured_vpp_before_key_amp_align_20260606_175720": 1.07105,
+        "source": "key_amplitude_alignment",
+        "updated_at": "20260606_175720"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 2.0,
+        "correction_factor": 0.9743977004214271,
+        "measured_vpp": 2.0525499999999997,
+        "old_correction_factor": 1.0
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 2.5,
+        "correction_factor": 1.0137328216097177,
+        "measured_vpp": 2.4343125,
+        "old_correction_factor": 0.9870969917219223,
+        "correction_factor_before_key_amp_align_20260606_175720": 0.9870969917219223,
+        "measured_vpp_before_key_amp_align_20260606_175720": "interpolated_before_insert",
+        "source": "key_amplitude_alignment",
+        "updated_at": "20260606_175720"
+      },
+      {
+        "freq_hz": 10000000.0,
+        "target_vpp": 3.0,
+        "correction_factor": 1.020541559733637,
+        "measured_vpp": 2.9321875,
+        "old_correction_factor": 1.0,
+        "correction_factor_before_key_amp_align_20260606_175720": 0.9974730682271579,
+        "measured_vpp_before_key_amp_align_20260606_175720": 3.0076,
+        "source": "key_amplitude_alignment",
+        "updated_at": "20260606_175720"
+      }
+    ],
+    "merged_from_existing": true
+  },
+  "updated_at": "20260606_175720"
+}

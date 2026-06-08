@@ -13,9 +13,19 @@ set ltx_file [file join $build_dir ku5p_dac_only_top.ltx]
 
 if {[info exists ::env(KU5P_HW_BIT)] && $::env(KU5P_HW_BIT) ne ""} {
     set bit_file [file normalize $::env(KU5P_HW_BIT)]
+} elseif {![file exists $bit_file]} {
+    set archived_bit [lsort -decreasing [glob -nocomplain -type f [file join $build_root bit_archive * ku5p_dac_only_top.bit]]]
+    if {[llength $archived_bit] > 0} {
+        set bit_file [file normalize [lindex $archived_bit 0]]
+    }
 }
 if {[info exists ::env(KU5P_HW_LTX)] && $::env(KU5P_HW_LTX) ne ""} {
     set ltx_file [file normalize $::env(KU5P_HW_LTX)]
+} elseif {![file exists $ltx_file]} {
+    set archived_ltx [lsort -decreasing [glob -nocomplain -type f [file join $build_root bit_archive * ku5p_dac_only_top.ltx]]]
+    if {[llength $archived_ltx] > 0} {
+        set ltx_file [file normalize [lindex $archived_ltx 0]]
+    }
 }
 
 puts "INFO: bit_file=$bit_file"

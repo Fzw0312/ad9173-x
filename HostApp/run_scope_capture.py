@@ -18,6 +18,6 @@ def _restart_inside_local_venv() -> None:
 
 if __name__ == "__main__":
     _restart_inside_local_venv()
-    from host_app.app import main
+    from host_app.scope_capture_app import main
 
     main()
