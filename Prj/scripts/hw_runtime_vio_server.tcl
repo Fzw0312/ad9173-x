@@ -27,7 +27,17 @@ proc norm_hex {value width_bits} {
     if {$value eq ""} {
         set value "0"
     }
-    return [format "%0*s" $width_nibbles $value]
+    if {![regexp -nocase {^[0-9a-f]+$} $value]} {
+        error "Invalid hex value '$value'"
+    }
+    regsub -nocase {^0+} $value {} value
+    if {$value eq ""} {
+        set value "0"
+    }
+    if {[string length $value] > $width_nibbles} {
+        error "Hex value '$value' does not fit in $width_bits bits"
+    }
+    return "[string repeat 0 [expr {$width_nibbles - [string length $value]}]]$value"
 }
 
 proc mapped_probe_name {name} {
@@ -38,12 +48,12 @@ proc mapped_probe_name {name} {
         probe_in3  {return dac_sanity_dbg}
         probe_in4  {return dac_debug_dbg}
         probe_in5  {return dac_runtime_dbg}
-        probe_in6  {return pe43711_status_word}
+        probe_in6  {return relay_atten_status_word}
         probe_out0 {return runtime_ch0_amp_vio}
         probe_out1 {return runtime_ch0_ftw_vio}
         probe_out2 {return runtime_ch1_amp_vio}
         probe_out3 {return runtime_ch1_ftw_vio}
-        probe_out4 {return runtime_pe43711_code_vio}
+        probe_out4 {return runtime_relay_atten_mask_vio}
         probe_out5 {return runtime_output_path_sel_vio}
         probe_out6 {return runtime_apply_toggle_vio}
         probe_out7 {return runtime_sweep_stop_ftw_vio}
@@ -176,7 +186,7 @@ proc ku5p_vio_status {} {
     get_in $vio probe_in6
 }
 
-proc ku5p_vio_apply {ch0_amp ch0_ftw ch1_amp ch1_ftw {pe_code 40} {path_sel 0}} {
+proc ku5p_vio_apply {ch0_amp ch0_ftw ch1_amp ch1_ftw {relay_mask 0} {path_sel 1}} {
     set vio [ku5p_vio_require]
     refresh_hw_vio $vio
     set old_apply [get_property OUTPUT_VALUE [probe_by_name $vio probe_out6]]
@@ -184,7 +194,7 @@ proc ku5p_vio_apply {ch0_amp ch0_ftw ch1_amp ch1_ftw {pe_code 40} {path_sel 0}} 
     set_out $vio probe_out1 $ch0_ftw 48
     set_out $vio probe_out2 $ch1_amp 16
     set_out $vio probe_out3 $ch1_ftw 48
-    set_out $vio probe_out4 $pe_code 7
+    set_out $vio probe_out4 $relay_mask 4
     set_out $vio probe_out5 $path_sel 1
     if {[string match -nocase "*1" $old_apply]} {
         set new_apply 0
@@ -196,7 +206,7 @@ proc ku5p_vio_apply {ch0_amp ch0_ftw ch1_amp ch1_ftw {pe_code 40} {path_sel 0}} 
     ku5p_vio_status
 }
 
-proc ku5p_vio_apply_fast {ch0_amp ch0_ftw ch1_amp ch1_ftw {pe_code 40} {path_sel 0}} {
+proc ku5p_vio_apply_fast {ch0_amp ch0_ftw ch1_amp ch1_ftw {relay_mask 0} {path_sel 1}} {
     set vio [ku5p_vio_require]
     set apply_probe [probe_by_name $vio probe_out6]
     set old_apply [get_property OUTPUT_VALUE $apply_probe]
@@ -205,7 +215,7 @@ proc ku5p_vio_apply_fast {ch0_amp ch0_ftw ch1_amp ch1_ftw {pe_code 40} {path_sel
     lappend probes [set_out_pending $vio probe_out1 $ch0_ftw 48]
     lappend probes [set_out_pending $vio probe_out2 $ch1_amp 16]
     lappend probes [set_out_pending $vio probe_out3 $ch1_ftw 48]
-    lappend probes [set_out_pending $vio probe_out4 $pe_code 7]
+    lappend probes [set_out_pending $vio probe_out4 $relay_mask 4]
     lappend probes [set_out_pending $vio probe_out5 $path_sel 1]
     commit_hw_vio $probes
     if {[string match -nocase "*1" $old_apply]} {
@@ -215,10 +225,35 @@ proc ku5p_vio_apply_fast {ch0_amp ch0_ftw ch1_amp ch1_ftw {pe_code 40} {path_sel
     }
     set_property OUTPUT_VALUE $new_apply $apply_probe
     commit_hw_vio $apply_probe
-    puts "FAST_APPLY ch0_amp=$ch0_amp ch0_ftw=$ch0_ftw ch1_amp=$ch1_amp ch1_ftw=$ch1_ftw pe=$pe_code path=$path_sel"
+    puts "FAST_APPLY ch0_amp=$ch0_amp ch0_ftw=$ch0_ftw ch1_amp=$ch1_amp ch1_ftw=$ch1_ftw relay=$relay_mask path=$path_sel"
 }
 
-proc ku5p_vio_sweep {ch0_amp ch0_start_ftw ch1_amp ch1_start_ftw pe_code path_sel stop_ftw step_ftw interval_cycles log_shift control segment_ftw} {
+proc ku5p_vio_set_relay {relay_mask {path_sel ""}} {
+    set vio [ku5p_vio_require]
+    refresh_hw_vio $vio
+    set apply_probe [probe_by_name $vio probe_out6]
+    set old_apply [get_property OUTPUT_VALUE $apply_probe]
+    set probes {}
+    lappend probes [set_out_pending $vio probe_out4 $relay_mask 4]
+    if {$path_sel ne ""} {
+        lappend probes [set_out_pending $vio probe_out5 $path_sel 1]
+    }
+    commit_hw_vio $probes
+    if {[string match -nocase "*1" $old_apply]} {
+        set new_apply 0
+    } else {
+        set new_apply 1
+    }
+    set_property OUTPUT_VALUE $new_apply $apply_probe
+    commit_hw_vio $apply_probe
+    after 100
+    refresh_hw_vio $vio
+    get_out $vio probe_out4
+    get_out $vio probe_out5
+    get_in $vio probe_in6
+}
+
+proc ku5p_vio_sweep {ch0_amp ch0_start_ftw ch1_amp ch1_start_ftw relay_mask path_sel stop_ftw step_ftw interval_cycles log_shift control segment_ftw} {
     set vio [ku5p_vio_require]
     refresh_hw_vio $vio
     set old_sweep [get_property OUTPUT_VALUE [probe_by_name $vio probe_out12]]
@@ -226,7 +261,7 @@ proc ku5p_vio_sweep {ch0_amp ch0_start_ftw ch1_amp ch1_start_ftw pe_code path_se
     set_out $vio probe_out1 $ch0_start_ftw 48
     set_out $vio probe_out2 $ch1_amp 16
     set_out $vio probe_out3 $ch1_start_ftw 48
-    set_out $vio probe_out4 $pe_code 7
+    set_out $vio probe_out4 $relay_mask 4
     set_out $vio probe_out5 $path_sel 1
     set_out $vio probe_out7 $stop_ftw 48
     set_out $vio probe_out8 $step_ftw 48

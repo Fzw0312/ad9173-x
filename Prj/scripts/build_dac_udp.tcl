@@ -94,7 +94,7 @@ set rtl_files [list \
     [stage_file [file join $prj_dir src rtl common jesd_clock.v]                  [file join $stage_dir src rtl common jesd_clock.v]] \
     [stage_file [file join $prj_dir src rtl common mb_io_dac_regs.v]             [file join $stage_dir src rtl common mb_io_dac_regs.v]] \
     [stage_file [file join $prj_dir src rtl common mb_control_island.v]           [file join $stage_dir src rtl common mb_control_island.v]] \
-    [stage_file [file join $prj_dir src rtl common pe43711_serial_ctrl.v]         [file join $stage_dir src rtl common pe43711_serial_ctrl.v]] \
+    [stage_file [file join $prj_dir src rtl common dds48_phase_to_sine_quad.v]   [file join $stage_dir src rtl common dds48_phase_to_sine_quad.v]] \
     [stage_file [file join $prj_dir src rtl common pattern_gen_256.v]             [file join $stage_dir src rtl common pattern_gen_256.v]] \
     [stage_file [file join $prj_dir src rtl common tx_mapper.v]                   [file join $stage_dir src rtl common tx_mapper.v]] \
     [stage_file [file join $prj_dir src rtl common k5wg_udp_dac_config_rx.v]      [file join $stage_dir src rtl common k5wg_udp_dac_config_rx.v]] \
@@ -232,7 +232,7 @@ set_property -dict [list \
     CONFIG.C_PROBE_OUT1_WIDTH {48} \
     CONFIG.C_PROBE_OUT2_WIDTH {16} \
     CONFIG.C_PROBE_OUT3_WIDTH {48} \
-    CONFIG.C_PROBE_OUT4_WIDTH {7} \
+    CONFIG.C_PROBE_OUT4_WIDTH {4} \
     CONFIG.C_PROBE_OUT5_WIDTH {1} \
     CONFIG.C_PROBE_OUT6_WIDTH {1} \
     CONFIG.C_PROBE_OUT7_WIDTH {48} \
@@ -247,8 +247,8 @@ set_property -dict [list \
     CONFIG.C_PROBE_OUT1_INIT_VAL {0x115c635403d6} \
     CONFIG.C_PROBE_OUT2_INIT_VAL {0x50ff} \
     CONFIG.C_PROBE_OUT3_INIT_VAL {0x01bc70553395} \
-    CONFIG.C_PROBE_OUT4_INIT_VAL {0x40} \
-    CONFIG.C_PROBE_OUT5_INIT_VAL {0x0} \
+    CONFIG.C_PROBE_OUT4_INIT_VAL {0x0} \
+    CONFIG.C_PROBE_OUT5_INIT_VAL {0x1} \
     CONFIG.C_PROBE_OUT6_INIT_VAL {0x0} \
     CONFIG.C_PROBE_OUT7_INIT_VAL {0x115c635403d6} \
     CONFIG.C_PROBE_OUT8_INIT_VAL {0x000000100000} \
@@ -259,6 +259,17 @@ set_property -dict [list \
     CONFIG.C_PROBE_OUT13_INIT_VAL {0x001bc7053395} \
     CONFIG.C_PROBE_OUT14_INIT_VAL {0x000000000000} \
 ] [get_ips runtime_vio]
+
+create_ip -name dds_compiler -vendor xilinx.com -library ip -version 6.0 -module_name dds_phase_to_sine -dir $ip_dir
+set_property -dict [list \
+    CONFIG.PartsPresent {SIN_COS_LUT_only} \
+    CONFIG.Phase_Width {16} \
+    CONFIG.Output_Width {16} \
+    CONFIG.Output_Selection {Sine} \
+    CONFIG.Has_ACLKEN {false} \
+    CONFIG.Has_ARESETn {false} \
+    CONFIG.Latency_Configuration {Auto} \
+] [get_ips dds_phase_to_sine]
 
 if {$enable_ila != 0} {
     create_ip -name ila -vendor xilinx.com -library ip -version 6.2 -module_name ila_dac_debug -dir $ip_dir
@@ -303,6 +314,7 @@ set ip_objects [list \
     [get_ips jesd204_phy_tx_quad227] \
     [get_ips mb_mcs_ctrl] \
     [get_ips runtime_vio] \
+    [get_ips dds_phase_to_sine] \
 ]
 if {$enable_ila != 0} {
     lappend ip_objects [get_ips ila_dac_debug]

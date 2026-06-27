@@ -18,9 +18,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from host_app.scope_scpi import ScopeEndpoint, capture_scope_waveform, save_waveform_csv
 
 
-DEFAULT_NCO_HZ = 1_474_561_031.9672773
+DEFAULT_NCO_HZ = 1_474_560_000.0
 AD9173_NCO_MAX_AMP = 0x50FF
-PE43711_STEP_DB = 0.25
+RELAY_ATTENUATOR_STAGES_DB = (5.0, 10.0, 15.0, 20.0)
 
 
 @dataclass(frozen=True)
@@ -28,7 +28,7 @@ class SweepPoint:
     freq_hz: float
     amp_code: int
     ftw: int
-    pe_code: int
+    relay_atten_mask: int
     measured_freq_hz: float
     measured_vpk: float
     measured_vpp: float
@@ -102,7 +102,7 @@ def main() -> int:
     parser.add_argument("--points", type=int, default=20000)
     parser.add_argument("--settle", type=float, default=1.0)
     parser.add_argument("--amp-ratio", type=float, default=0.8)
-    parser.add_argument("--pe-code", type=lambda x: int(x, 0), default=0)
+    parser.add_argument("--relay-mask", type=lambda x: int(x, 0), default=0)
     parser.add_argument("--nco-hz", type=float, default=DEFAULT_NCO_HZ)
     parser.add_argument("--output-dir", type=Path, default=Path(__file__).resolve().parents[1] / "calibration")
     parser.add_argument("--dry-run", action="store_true")
@@ -110,7 +110,7 @@ def main() -> int:
 
     freqs_mhz = [10, 15, 20, 30, 40, 50, 70, 100, 130, 160, 180, 200]
     amp_code = max(0, min(AD9173_NCO_MAX_AMP, int(round(args.amp_ratio * AD9173_NCO_MAX_AMP))))
-    pe_code = max(0, min(127, int(args.pe_code)))
+    relay_mask = max(0, min(15, int(args.relay_mask)))
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     out_dir = args.output_dir / f"ch1_rf_10m_200m_{timestamp}"
     wave_dir = out_dir / "waveforms"
@@ -127,11 +127,11 @@ def main() -> int:
 
     if args.dry_run:
         for freq_hz, ftw in plan:
-            print(f"{freq_hz/1e6:8.3f} MHz amp=0x{amp_code:04X} ftw=0x{ftw:012X} pe=0x{pe_code:02X}")
+            print(f"{freq_hz/1e6:8.3f} MHz amp=0x{amp_code:04X} ftw=0x{ftw:012X} relay=0x{relay_mask:02X}")
         return 0
 
     for index, (freq_hz, ftw) in enumerate(plan, 1):
-        command = f"ku5p_vio_apply {amp_code:04x} {ftw:012x} 0000 000000000000 {pe_code:02x} 0"
+        command = f"ku5p_vio_apply {amp_code:04x} {ftw:012x} 0000 000000000000 {relay_mask:01x} 1"
         print(f"[{index}/{len(plan)}] apply {freq_hz/1e6:.3f} MHz: {command}", flush=True)
         run_vio_commands([command], timeout_s=90.0)
         time.sleep(args.settle)
@@ -152,7 +152,7 @@ def main() -> int:
             freq_hz=freq_hz,
             amp_code=amp_code,
             ftw=ftw,
-            pe_code=pe_code,
+            relay_atten_mask=relay_mask,
             measured_freq_hz=measured_freq,
             measured_vpk=measured_vpk,
             measured_vpp=measured_vpp,
@@ -172,7 +172,7 @@ def main() -> int:
             "raw_vpk": point.measured_vpk,
             "measured_freq_hz": point.measured_freq_hz,
             "amp_code": point.amp_code,
-            "pe43711_code": point.pe_code,
+            "relay_atten_mask": point.relay_atten_mask,
             "ftw": f"0x{point.ftw:012X}",
         }
         for point in points
@@ -180,13 +180,16 @@ def main() -> int:
     cal = {
         "version": 1,
         "created_at": timestamp,
-        "path": "ch1_rf_dac0_hmc788_pe43711",
+        "path": "ch1_rf_dac0_hmc788_relay_attenuator",
         "amplitude_unit": "Vpk",
         "nco_hz": args.nco_hz,
         "preferred_amp_code": amp_code,
         "preferred_dac_scale_ratio": amp_code / AD9173_NCO_MAX_AMP,
-        "pe43711_code": pe_code,
-        "pe43711_atten_db": pe_code * PE43711_STEP_DB,
+        "relay_atten_mask": relay_mask,
+        "relay_atten_db": sum(
+            stage_db for bit, stage_db in enumerate(RELAY_ATTENUATOR_STAGES_DB)
+            if relay_mask & (1 << bit)
+        ),
         "points": raw_points,
     }
     json_path = out_dir / "rf_cal_10m_200m_ch1_raw.json"

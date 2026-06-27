@@ -18,8 +18,8 @@
 //   0x0c  u48[4]   DAC0..DAC3 的 FPGA DDS 相位累加步进
 //   0x24  u16[4]   DAC0..DAC3 的 unsigned Q1.15 幅度缩放系数
 //   0x2c  u32      JESD main NCO FTW[31:0]，用于 RF 高频搬移
-//   0x30  u8       RF PE43711 衰减码，0.25 dB/LSB
-//   0x31  u8       输出通路选择，0=RF/DAC0，1=LF/DAC1
+//   0x30  u8       relay attenuator mask: bit0=5 dB, bit1=10 dB, bit2=15 dB, bit3=20 dB
+//   0x31  u8       输出通路选择，1=RF/DAC0，0=LF/DAC1
 //   0x32  u16      JESD main NCO FTW[47:32]
 //
 // K5WG DATA 帧携带 int16 小端 CH0/CH1 样点对，用于写入 RAM 任意波形。
@@ -50,7 +50,7 @@ module k5wg_udp_dac_config_rx #(
     output reg  [15:0] cfg_scale2,
     output reg  [15:0] cfg_scale3,
     output reg  [47:0] cfg_main_nco_ftw,
-    output reg  [6:0]  cfg_rf_atten_code,
+    output reg  [3:0]  cfg_rf_atten_mask,
     output reg         cfg_output_path_sel,
     output reg         wave_wr_en,
     output reg  [WAVE_ADDR_WIDTH-1:0] wave_wr_addr,
@@ -103,7 +103,7 @@ module k5wg_udp_dac_config_rx #(
     reg [15:0] temp_scale2;
     reg [15:0] temp_scale3;
     reg [47:0] temp_main_nco_ftw;
-    reg [6:0]  temp_rf_atten_code;
+    reg [3:0]  temp_rf_atten_mask;
     reg        temp_output_path_sel;
     reg [15:0] data_flags;
     reg [15:0] data_sample_format;
@@ -172,8 +172,8 @@ module k5wg_udp_dac_config_rx #(
             temp_scale2       <= 16'd0;
             temp_scale3       <= 16'd0;
             temp_main_nco_ftw <= 48'd0;
-            temp_rf_atten_code <= 7'd127;
-            temp_output_path_sel <= 1'b0;
+            temp_rf_atten_mask <= 4'h0;
+            temp_output_path_sel <= 1'b1;
             data_flags        <= 16'd0;
             data_sample_format <= 16'd0;
             data_sample_offset <= 32'd0;
@@ -272,7 +272,7 @@ module k5wg_udp_dac_config_rx #(
                 K5DC_OFFSET + 45: temp_main_nco_ftw[15:8] <= b;
                 K5DC_OFFSET + 46: temp_main_nco_ftw[23:16] <= b;
                 K5DC_OFFSET + 47: temp_main_nco_ftw[31:24] <= b;
-                K5DC_OFFSET + 48: temp_rf_atten_code <= b[6:0];
+                K5DC_OFFSET + 48: temp_rf_atten_mask <= b[3:0];
                 K5DC_OFFSET + 49: temp_output_path_sel <= b[0];
                 K5DC_OFFSET + 50: temp_main_nco_ftw[39:32] <= b;
                 K5DC_OFFSET + 51: temp_main_nco_ftw[47:40] <= b;
@@ -298,7 +298,7 @@ module k5wg_udp_dac_config_rx #(
                     cfg_scale2     <= temp_scale2;
                     cfg_scale3     <= temp_scale3;
                     cfg_main_nco_ftw <= {b, temp_main_nco_ftw[39:0]};
-                    cfg_rf_atten_code <= temp_rf_atten_code;
+                    cfg_rf_atten_mask <= temp_rf_atten_mask;
                     cfg_output_path_sel <= temp_output_path_sel;
                     config_count   <= config_count + 1'b1;
                 end else begin
@@ -388,8 +388,8 @@ module k5wg_udp_dac_config_rx #(
             cfg_scale2      <= 16'h7fff;
             cfg_scale3      <= 16'h7fff;
             cfg_main_nco_ftw <= 48'd0;
-            cfg_rf_atten_code <= 7'd127;
-            cfg_output_path_sel <= 1'b0;
+            cfg_rf_atten_mask <= 4'h0;
+            cfg_output_path_sel <= 1'b1;
             wave_wr_en      <= 1'b0;
             wave_wr_addr    <= {WAVE_ADDR_WIDTH{1'b0}};
             wave_wr_data    <= 32'd0;

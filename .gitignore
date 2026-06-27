@@ -22,8 +22,10 @@ xsim.dir/
 .codex_tmp/
 build/
 **/build/
+output/
 outputs/
 outputs/cleanup_archive/
+render_title_check/
 *.bit
 *.bin
 *.ltx
@@ -36,6 +38,11 @@ outputs/cleanup_archive/
 *.bak
 *.backup
 *.zip
+hs_err_pid*.dmp
+hs_err_pid*.log
+article_extracted.txt
+article_title_updated.docx
+docs/_draw_test.png
 
 # Large local captures and duplicated snapshots
 archive/
@@ -58,6 +65,7 @@ __pycache__/
 .venv/
 venv/
 .env
+HostApp/import hashlib.py
 
 # Editor and OS files
 .vscode/

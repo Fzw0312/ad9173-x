@@ -12,6 +12,8 @@ import numpy as np
 SAMPLE_RATE_HZ = 983_040_000.0
 SAMPLE_COUNT = 32768
 DEFAULT_FULL_SCALE_LSB = 32767
+DEFAULT_SWEEP_RATIOS = (0.0025, 0.005, 0.01, 0.015, 0.02)
+DEFAULT_SWEEP_PHASES = (0.0, 90.0, 180.0, 270.0)
 
 
 def coherent_cycles(freq_hz: float, sample_rate_hz: float, sample_count: int) -> int:
@@ -103,6 +105,21 @@ def write_wave(
     return metrics
 
 
+def parse_float_list(value: str, label: str) -> list[float]:
+    items = [item.strip() for item in str(value).split(",")]
+    numbers: list[float] = []
+    for item in items:
+        if not item:
+            continue
+        try:
+            numbers.append(float(item))
+        except ValueError as exc:
+            raise argparse.ArgumentTypeError(f"invalid {label} value: {item!r}") from exc
+    if not numbers:
+        raise argparse.ArgumentTypeError(f"{label} list cannot be empty")
+    return numbers
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate RAM sine and H2 predistortion candidates.")
     parser.add_argument("--freq-hz", type=float, default=100_020_000.0)
@@ -111,6 +128,8 @@ def main() -> None:
     parser.add_argument("--single-ratio", type=float, default=None, help="Generate only one H2 predistortion ratio, for example 0.015.")
     parser.add_argument("--single-phase", type=float, default=None, help="Generate only one H2 predistortion phase in degrees, for example 270.")
     parser.add_argument("--single-label", type=str, default="", help="Optional output name prefix for a single predistortion waveform.")
+    parser.add_argument("--ratios", type=str, default="", help="Comma-separated H2 ratios for sweep mode, for example 0.015,0.02,0.025.")
+    parser.add_argument("--phases", type=str, default="", help="Comma-separated H2 phases in degrees for sweep mode, for example 240,270,300.")
     args = parser.parse_args()
 
     out_dir = args.out_dir
@@ -129,8 +148,15 @@ def main() -> None:
     else:
         rows.append(write_wave(out_dir, f"ram_clean_sine_{actual_freq_hz/1e6:.3f}m_pk{args.peak_lsb}", actual_freq_hz, cycles, args.peak_lsb, 0.0, 0.0))
 
-        for ratio in (0.0025, 0.005, 0.01, 0.015, 0.02):
-            for phase in (0.0, 90.0, 180.0, 270.0):
+        ratios = parse_float_list(args.ratios, "ratio") if args.ratios.strip() else list(DEFAULT_SWEEP_RATIOS)
+        phases = parse_float_list(args.phases, "phase") if args.phases.strip() else list(DEFAULT_SWEEP_PHASES)
+        seen: set[tuple[float, float]] = set()
+        for ratio in ratios:
+            for phase in phases:
+                key = (round(float(ratio), 10), round(float(phase), 10))
+                if key in seen:
+                    continue
+                seen.add(key)
                 name = f"ram_h2pd_{actual_freq_hz/1e6:.3f}m_pk{args.peak_lsb}_r{ratio:.4f}_p{int(phase):03d}"
                 rows.append(write_wave(out_dir, name, actual_freq_hz, cycles, args.peak_lsb, ratio, phase))
 

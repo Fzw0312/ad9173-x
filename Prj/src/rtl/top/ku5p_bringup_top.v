@@ -30,10 +30,10 @@ module ku5p_bringup_top (
     input  wire [3:0] phy1_rxd,
     output wire       phy1_mdc,
     inout  wire       phy1_mdio,
-    output wire       pe43711_data,
-    output wire       pe43711_clk,
-    output wire       pe43711_le,
-    output wire       pe43711_ps,
+    output wire       relay_atten_5db,
+    output wire       relay_atten_10db,
+    output wire       relay_atten_15db,
+    output wire       relay_atten_20db,
     output wire       output_path_sel
 );
 
@@ -49,6 +49,7 @@ module ku5p_bringup_top (
     localparam integer JESD_RETRY_MISSING_MS  = 50;
     localparam integer JESD_RETRY_RESET_MS    = 5;
     localparam integer JESD_USE_QPLL          = 1;
+    localparam integer RELAY_ACTIVE_LOW       = 0;
 
     localparam integer BOOT_WAIT_TICKS = BOOT_WAIT_MS * MS_TICKS;
     localparam integer HOLD_WAIT_TICKS = HOLD_WAIT_MS * MS_TICKS;
@@ -269,7 +270,7 @@ module ku5p_bringup_top (
     wire [15:0] dac_cfg_scale2_rxclk;
     wire [15:0] dac_cfg_scale3_rxclk;
     wire [47:0] dac_cfg_main_nco_ftw_rxclk;
-    wire [6:0]  dac_cfg_rf_atten_code_rxclk;
+    wire [3:0]  dac_cfg_rf_atten_mask_rxclk;
     wire        dac_cfg_output_path_sel_rxclk;
     wire        dac_wave_wr_en_rxclk;
     wire [WAVE_ADDR_WIDTH-1:0] dac_wave_wr_addr_rxclk;
@@ -310,7 +311,7 @@ module ku5p_bringup_top (
     reg [15:0] dac_cfg_scale2_hold_rxclk;
     reg [15:0] dac_cfg_scale3_hold_rxclk;
     reg [47:0] dac_cfg_main_nco_ftw_hold_rxclk;
-    reg [6:0]  dac_cfg_rf_atten_code_hold_rxclk;
+    reg [3:0]  dac_cfg_rf_atten_mask_hold_rxclk;
     reg        dac_cfg_output_path_sel_hold_rxclk;
     reg         mb_cfg_toggle_sysclk;
     reg         mb_cfg_reset_phase_hold_sysclk;
@@ -348,17 +349,17 @@ module ku5p_bringup_top (
     reg [47:0] dac_main_nco_ftw_sysclk;
     reg [15:0] dac_nco_scale0_sysclk;
     reg [15:0] dac_nco_scale1_sysclk;
-    reg [6:0]  pe43711_atten_code_sysclk;
+    reg [3:0]  relay_atten_mask_sysclk;
     reg        output_path_sel_sysclk;
+    wire [31:0] relay_atten_status_word;
     reg        runtime_source_udp_sysclk;
     reg        runtime_apply_toggle_vio_d1_sysclk;
     reg        runtime_auto_applied_sysclk;
-    wire [31:0] pe43711_status_word;
     wire [15:0] runtime_ch0_amp_vio;
     wire [47:0] runtime_ch0_ftw_vio;
     wire [15:0] runtime_ch1_amp_vio;
     wire [47:0] runtime_ch1_ftw_vio;
-    wire [6:0]  runtime_pe43711_code_vio;
+    wire [3:0]  runtime_relay_atten_mask_vio;
     wire        runtime_output_path_sel_vio;
     wire        runtime_apply_toggle_vio;
     wire [47:0] runtime_main0_ftw_vio;
@@ -381,8 +382,9 @@ module ku5p_bringup_top (
     wire [47:0] runtime_main0_ftw_selected;
     wire [15:0] runtime_ch1_amp_selected;
     wire [47:0] runtime_ch1_ftw_selected;
-    wire [6:0]  runtime_pe43711_code_selected;
+    wire [3:0]  runtime_relay_atten_mask_selected;
     wire        runtime_output_path_sel_selected;
+    wire        pattern_output_path_sel_legacy;
     reg         runtime_sweep_toggle_d1_sysclk;
     reg         runtime_sweep_enabled_sysclk;
     reg         runtime_sweep_log_sysclk;
@@ -457,8 +459,9 @@ module ku5p_bringup_top (
     };
     assign mb_status1 = {
         runtime_output_path_sel_selected,
-        runtime_pe43711_code_selected,
-        pe43711_status_word[23:16],
+        4'd0,
+        runtime_relay_atten_mask_selected,
+        8'd0,
         jesd_qpll_lock_dbg,
         jesd_tx_reset_done_dbg,
         jesd_gt_powergood_dbg,
@@ -474,8 +477,17 @@ module ku5p_bringup_top (
     assign tx_tone_advance[1] = jesd_tx_ready1 && jesd_tx_aresetn1;
 
     assign phy1_rx_rst = phy1_rx_rst_sync[2];
-    assign pe43711_ps = 1'b1;
     assign output_path_sel = runtime_output_path_sel_selected;
+    assign relay_atten_5db = runtime_relay_atten_mask_selected[0] ^ RELAY_ACTIVE_LOW[0];
+    assign relay_atten_10db = runtime_relay_atten_mask_selected[1] ^ RELAY_ACTIVE_LOW[0];
+    assign relay_atten_15db = runtime_relay_atten_mask_selected[2] ^ RELAY_ACTIVE_LOW[0];
+    assign relay_atten_20db = runtime_relay_atten_mask_selected[3] ^ RELAY_ACTIVE_LOW[0];
+    assign relay_atten_status_word = {
+        24'd0,
+        runtime_output_path_sel_selected,
+        3'd0,
+        runtime_relay_atten_mask_selected
+    };
     assign runtime_vio_apply_event_sysclk =
         runtime_apply_toggle_vio ^ runtime_apply_toggle_vio_d1_sysclk;
     assign runtime_udp_apply_event_sysclk =
@@ -494,7 +506,7 @@ module ku5p_bringup_top (
     assign runtime_sweep_next_ftw =
         runtime_sweep_log_sysclk ? runtime_sweep_log_next_ftw : runtime_sweep_linear_next_ftw;
     assign runtime_sweep_active_stop_ftw =
-        runtime_sweep_segmented_sysclk && runtime_sweep_path_sel_sysclk ?
+        runtime_sweep_segmented_sysclk && !runtime_sweep_path_sel_sysclk ?
         runtime_sweep_segment_ftw_sysclk : runtime_sweep_stop_ftw_sysclk;
     assign runtime_sweep_at_stop =
         (runtime_sweep_current_ftw_sysclk >= runtime_sweep_active_stop_ftw);
@@ -510,7 +522,7 @@ module ku5p_bringup_top (
         runtime_source_udp_sysclk ? dac_nco_scale0_sysclk : runtime_ch0_amp_vio;
     assign runtime_ch0_ftw_selected =
         runtime_sweep_enabled_sysclk ?
-            (runtime_sweep_path_sel_sysclk ? 48'd0 : runtime_sweep_current_ftw_sysclk) :
+            (runtime_sweep_path_sel_sysclk ? runtime_sweep_current_ftw_sysclk : 48'd0) :
         (runtime_source_udp_sysclk ? dac_nco_phase_inc0_sysclk : runtime_ch0_ftw_vio);
     assign runtime_main0_ftw_selected =
         runtime_sweep_enabled_sysclk ? 48'd0 :
@@ -521,13 +533,14 @@ module ku5p_bringup_top (
         runtime_source_udp_sysclk ? dac_nco_scale1_sysclk : runtime_ch1_amp_vio;
     assign runtime_ch1_ftw_selected =
         runtime_sweep_enabled_sysclk ?
-            (runtime_sweep_path_sel_sysclk ? runtime_sweep_current_ftw_sysclk : 48'd0) :
+            (runtime_sweep_path_sel_sysclk ? 48'd0 : runtime_sweep_current_ftw_sysclk) :
         (runtime_source_udp_sysclk ? dac_nco_phase_inc1_sysclk : runtime_ch1_ftw_vio);
-    assign runtime_pe43711_code_selected =
-        runtime_source_udp_sysclk ? pe43711_atten_code_sysclk : runtime_pe43711_code_vio;
+    assign runtime_relay_atten_mask_selected =
+        runtime_source_udp_sysclk ? relay_atten_mask_sysclk : runtime_relay_atten_mask_vio;
     assign runtime_output_path_sel_selected =
         runtime_sweep_enabled_sysclk ? runtime_sweep_path_sel_sysclk :
         (runtime_source_udp_sysclk ? output_path_sel_sysclk : runtime_output_path_sel_vio);
+    assign pattern_output_path_sel_legacy = ~dac_cfg_output_path_sel_jclk;
 
     IBUFDS u_sys_clk_buf (
         .I (sys_clk_p),
@@ -787,7 +800,7 @@ module ku5p_bringup_top (
         .rx_error    (phy1_rx_error)
     );
 
-    // HostApp 通过 UDP 下发 DDS 配置、RAM 波形、main NCO FTW、PE43711
+    // HostApp 通过 UDP 下发 DDS 配置、RAM 波形、main NCO FTW、继电器衰减 mask
     // 衰减码和 RF/LF 通路选择。此模块在 phy1_rxck 时钟域内解析帧。
     k5wg_udp_dac_config_rx #(
         .FPGA_IP (32'hC0A8_010A),
@@ -812,7 +825,7 @@ module ku5p_bringup_top (
         .cfg_scale2        (dac_cfg_scale2_rxclk),
         .cfg_scale3        (dac_cfg_scale3_rxclk),
         .cfg_main_nco_ftw  (dac_cfg_main_nco_ftw_rxclk),
-        .cfg_rf_atten_code (dac_cfg_rf_atten_code_rxclk),
+        .cfg_rf_atten_mask (dac_cfg_rf_atten_mask_rxclk),
         .cfg_output_path_sel(dac_cfg_output_path_sel_rxclk),
         .wave_wr_en        (dac_wave_wr_en_rxclk),
         .wave_wr_addr      (dac_wave_wr_addr_rxclk),
@@ -864,12 +877,12 @@ module ku5p_bringup_top (
         .wave_wr_data      (dac_wave_wr_data_rxclk),
         .wave_total_samples(dac_wave_total_samples_rxclk),
         .wave_commit_toggle(dac_wave_commit_toggle_rxclk),
-        .output_path_sel   (dac_cfg_output_path_sel_jclk),
+        .output_path_sel   (pattern_output_path_sel_legacy),
         .data_out          (tx_pattern_data)
     );
 
     // VIO 调试入口：不用 HostApp/网口时，可直接在 Vivado Hardware Manager
-    // 修改 NCO、幅度、扫频、PE43711 衰减和 main NCO 搬移参数。
+    // 修改 NCO、幅度、扫频、继电器衰减和 main NCO 搬移参数。
     runtime_vio u_runtime_vio (
         .clk       (sys_clk),
         .probe_in0 (mb_status0),
@@ -878,12 +891,12 @@ module ku5p_bringup_top (
         .probe_in3 (dac_sanity_dbg),
         .probe_in4 (dac_debug_dbg),
         .probe_in5 (dac_runtime_dbg),
-        .probe_in6 (pe43711_status_word),
+        .probe_in6 (relay_atten_status_word),
         .probe_out0(runtime_ch0_amp_vio),
         .probe_out1(runtime_ch0_ftw_vio),
         .probe_out2(runtime_ch1_amp_vio),
         .probe_out3(runtime_ch1_ftw_vio),
-        .probe_out4(runtime_pe43711_code_vio),
+        .probe_out4(runtime_relay_atten_mask_vio),
         .probe_out5(runtime_output_path_sel_vio),
         .probe_out6(runtime_apply_toggle_vio),
         .probe_out7(runtime_sweep_stop_ftw_vio),
@@ -894,26 +907,6 @@ module ku5p_bringup_top (
         .probe_out12(runtime_sweep_toggle_vio),
         .probe_out13(runtime_sweep_segment_ftw_vio),
         .probe_out14(runtime_main0_ftw_vio)
-    );
-
-    // PE43711 数控衰减器控制。HostApp/VIO 给出 7-bit 衰减码，
-    // 这里串行移位到外部 PE43711，用于 RF 输出幅度校准。
-    pe43711_serial_ctrl #(
-        .CLK_HALF_CYCLES(16),
-        .DEFAULT_ATTENUATION_CODE(7'd127),
-        .POWER_ON_APPLY(1)
-    ) u_pe43711_serial_ctrl (
-        .clk             (sys_clk),
-        .rst_n           (!init_rst),
-        .attenuation_code(runtime_pe43711_code_selected),
-        .apply_toggle    (runtime_apply_toggle_combined),
-        .pe_data         (pe43711_data),
-        .pe_clk          (pe43711_clk),
-        .pe_le           (pe43711_le),
-        .active_code     (),
-        .apply_count     (),
-        .busy            (),
-        .status_word     (pe43711_status_word)
     );
 
     // 将 pattern_gen_256 产生的 4 路 DAC 16-bit 样点重排为两组
@@ -1321,8 +1314,8 @@ module ku5p_bringup_top (
             dac_cfg_scale2_hold_rxclk <= 16'h7fff;
             dac_cfg_scale3_hold_rxclk <= 16'h7fff;
             dac_cfg_main_nco_ftw_hold_rxclk <= 48'd0;
-            dac_cfg_rf_atten_code_hold_rxclk <= 7'd127;
-            dac_cfg_output_path_sel_hold_rxclk <= 1'b0;
+            dac_cfg_rf_atten_mask_hold_rxclk <= 4'h0;
+            dac_cfg_output_path_sel_hold_rxclk <= 1'b1;
         end else if (dac_cfg_valid_rxclk) begin
             dac_cfg_reset_phase_hold_rxclk <= dac_cfg_reset_phase_rxclk;
             dac_cfg_nco_only_hold_rxclk <= dac_cfg_nco_only_rxclk;
@@ -1336,7 +1329,7 @@ module ku5p_bringup_top (
             dac_cfg_scale2_hold_rxclk <= dac_cfg_scale2_rxclk;
             dac_cfg_scale3_hold_rxclk <= dac_cfg_scale3_rxclk;
             dac_cfg_main_nco_ftw_hold_rxclk <= dac_cfg_main_nco_ftw_rxclk;
-            dac_cfg_rf_atten_code_hold_rxclk <= dac_cfg_rf_atten_code_rxclk;
+            dac_cfg_rf_atten_mask_hold_rxclk <= dac_cfg_rf_atten_mask_rxclk;
             dac_cfg_output_path_sel_hold_rxclk <= dac_cfg_output_path_sel_rxclk;
             dac_cfg_toggle_rxclk <= ~dac_cfg_toggle_rxclk;
         end
@@ -1352,8 +1345,8 @@ module ku5p_bringup_top (
             dac_main_nco_ftw_sysclk <= 48'd0;
             dac_nco_scale0_sysclk <= 16'd0;
             dac_nco_scale1_sysclk <= 16'd0;
-            pe43711_atten_code_sysclk <= 7'd127;
-            output_path_sel_sysclk <= 1'b0;
+            relay_atten_mask_sysclk <= 4'h0;
+            output_path_sel_sysclk <= 1'b1;
             runtime_source_udp_sysclk <= 1'b0;
             runtime_apply_toggle_vio_d1_sysclk <= 1'b0;
             runtime_auto_applied_sysclk <= 1'b0;
@@ -1362,7 +1355,7 @@ module ku5p_bringup_top (
             runtime_sweep_log_sysclk <= 1'b0;
             runtime_sweep_repeat_sysclk <= 1'b0;
             runtime_sweep_segmented_sysclk <= 1'b0;
-            runtime_sweep_path_sel_sysclk <= 1'b0;
+            runtime_sweep_path_sel_sysclk <= 1'b1;
             runtime_sweep_current_ftw_sysclk <= 48'd0;
             runtime_sweep_stop_ftw_sysclk <= 48'd0;
             runtime_sweep_step_ftw_sysclk <= 48'd1;
@@ -1389,7 +1382,7 @@ module ku5p_bringup_top (
                 dac_main_nco_ftw_sysclk <= dac_cfg_main_nco_ftw_hold_rxclk;
                 dac_nco_scale0_sysclk <= dac_cfg_scale0_hold_rxclk;
                 dac_nco_scale1_sysclk <= dac_cfg_scale2_hold_rxclk;
-                pe43711_atten_code_sysclk <= dac_cfg_rf_atten_code_hold_rxclk;
+                relay_atten_mask_sysclk <= dac_cfg_rf_atten_mask_hold_rxclk;
                 output_path_sel_sysclk <= dac_cfg_output_path_sel_hold_rxclk;
                 runtime_source_udp_sysclk <= 1'b1;
                 runtime_sweep_enabled_sysclk <= 1'b0;
@@ -1408,7 +1401,7 @@ module ku5p_bringup_top (
                 runtime_sweep_segmented_sysclk <= runtime_sweep_control_vio[3];
                 runtime_sweep_path_sel_sysclk <= runtime_output_path_sel_vio;
                 runtime_sweep_current_ftw_sysclk <= runtime_output_path_sel_vio ?
-                    runtime_ch1_ftw_vio : runtime_ch0_ftw_vio;
+                    runtime_ch0_ftw_vio : runtime_ch1_ftw_vio;
                 runtime_sweep_stop_ftw_sysclk <= runtime_sweep_stop_ftw_vio;
                 runtime_sweep_step_ftw_sysclk <=
                     (runtime_sweep_step_ftw_vio == 48'd0) ? 48'd1 : runtime_sweep_step_ftw_vio;
@@ -1427,13 +1420,13 @@ module ku5p_bringup_top (
                 end else if (runtime_sweep_spi_ready) begin
                     runtime_sweep_counter_sysclk <= 32'd0;
                     if (runtime_sweep_at_stop) begin
-                        if (runtime_sweep_segmented_sysclk && runtime_sweep_path_sel_sysclk) begin
-                            runtime_sweep_path_sel_sysclk <= 1'b0;
+                        if (runtime_sweep_segmented_sysclk && !runtime_sweep_path_sel_sysclk) begin
+                            runtime_sweep_path_sel_sysclk <= 1'b1;
                             runtime_sweep_current_ftw_sysclk <= runtime_sweep_segment_ftw_sysclk;
                             runtime_sweep_pending_apply_sysclk <= 1'b1;
                         end else if (runtime_sweep_repeat_sysclk) begin
                             runtime_sweep_current_ftw_sysclk <= runtime_output_path_sel_vio ?
-                                runtime_ch1_ftw_vio : runtime_ch0_ftw_vio;
+                                runtime_ch0_ftw_vio : runtime_ch1_ftw_vio;
                             runtime_sweep_path_sel_sysclk <= runtime_output_path_sel_vio;
                             runtime_sweep_pending_apply_sysclk <= 1'b1;
                         end else begin
@@ -1466,7 +1459,7 @@ module ku5p_bringup_top (
             dac_cfg_reset_phase_jclk <= 1'b0;
             dac_cfg_nco_only_jclk <= 1'b0;
             dac_cfg_ram_mode_jclk <= 1'b0;
-            dac_cfg_output_path_sel_jclk <= 1'b0;
+            dac_cfg_output_path_sel_jclk <= 1'b1;
             ram_playback_lock_jclk <= 1'b0;
             dac_cfg_phase_inc0_jclk <= 48'h053555555555;
             dac_cfg_phase_inc1_jclk <= 48'h07d000000000;
@@ -1577,8 +1570,8 @@ module ku5p_bringup_top (
         dac_cfg_scale2_hold_rxclk <= 16'h7fff;
         dac_cfg_scale3_hold_rxclk <= 16'h7fff;
         dac_cfg_main_nco_ftw_hold_rxclk <= 48'd0;
-        dac_cfg_rf_atten_code_hold_rxclk <= 7'd127;
-        dac_cfg_output_path_sel_hold_rxclk <= 1'b0;
+        dac_cfg_rf_atten_mask_hold_rxclk <= 4'h0;
+        dac_cfg_output_path_sel_hold_rxclk <= 1'b1;
         mb_cfg_toggle_sysclk <= 1'b0;
         mb_cfg_reset_phase_hold_sysclk <= 1'b0;
         mb_cfg_phase_inc0_hold_sysclk <= 48'h053555555555;
@@ -1594,7 +1587,7 @@ module ku5p_bringup_top (
         dac_cfg_reset_phase_jclk <= 1'b0;
         dac_cfg_nco_only_jclk <= 1'b0;
         dac_cfg_ram_mode_jclk <= 1'b0;
-        dac_cfg_output_path_sel_jclk <= 1'b0;
+        dac_cfg_output_path_sel_jclk <= 1'b1;
         ram_playback_lock_jclk <= 1'b0;
         dac_cfg_phase_inc0_jclk <= 48'h053555555555;
         dac_cfg_phase_inc1_jclk <= 48'h07d000000000;
@@ -1613,8 +1606,8 @@ module ku5p_bringup_top (
         dac_main_nco_ftw_sysclk <= 48'd0;
         dac_nco_scale0_sysclk <= 16'd0;
         dac_nco_scale1_sysclk <= 16'd0;
-        pe43711_atten_code_sysclk <= 7'd127;
-        output_path_sel_sysclk <= 1'b0;
+        relay_atten_mask_sysclk <= 4'h0;
+        output_path_sel_sysclk <= 1'b1;
         runtime_source_udp_sysclk <= 1'b0;
         runtime_apply_toggle_vio_d1_sysclk <= 1'b0;
         runtime_auto_applied_sysclk <= 1'b0;
@@ -1623,7 +1616,7 @@ module ku5p_bringup_top (
         runtime_sweep_log_sysclk <= 1'b0;
         runtime_sweep_repeat_sysclk <= 1'b0;
         runtime_sweep_segmented_sysclk <= 1'b0;
-        runtime_sweep_path_sel_sysclk <= 1'b0;
+        runtime_sweep_path_sel_sysclk <= 1'b1;
         runtime_sweep_current_ftw_sysclk <= 48'd0;
         runtime_sweep_stop_ftw_sysclk <= 48'd0;
         runtime_sweep_step_ftw_sysclk <= 48'd1;

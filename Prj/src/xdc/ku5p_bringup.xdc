@@ -56,17 +56,17 @@ set_property PACKAGE_PIN B22 [get_ports txen_0]
 set_property PACKAGE_PIN C22 [get_ports txen_1]
 set_property IOSTANDARD LVCMOS18 [get_ports {dac_cs dac_sclk dac_sdio dac_sdo txen_0 txen_1}]
 
-# RF 输出控制。
-# PE43711 PS 在 RTL 中保持高电平，匹配已验证过的 NCO-only 参考工程。
-# B9/output_path_sel 为外部 RF/LF 通路选择控制：0=RF，1=LF。
-set_property PACKAGE_PIN C11 [get_ports pe43711_data]
-set_property PACKAGE_PIN E11 [get_ports pe43711_clk]
-set_property PACKAGE_PIN D11 [get_ports pe43711_le]
-set_property PACKAGE_PIN D9 [get_ports pe43711_ps]
+# RF output control.
+# relay_atten_* high enables the corresponding relay attenuation section.
+# B9/output_path_sel: 1=RF path, 0=LF path.
+set_property PACKAGE_PIN D9 [get_ports relay_atten_5db]
+set_property PACKAGE_PIN C11 [get_ports relay_atten_10db]
+set_property PACKAGE_PIN E11 [get_ports relay_atten_15db]
+set_property PACKAGE_PIN D11 [get_ports relay_atten_20db]
 set_property PACKAGE_PIN B9 [get_ports output_path_sel]
-set_property IOSTANDARD LVCMOS18 [get_ports {pe43711_data pe43711_clk pe43711_le pe43711_ps output_path_sel}]
-set_property DRIVE 8 [get_ports {pe43711_data pe43711_clk pe43711_le pe43711_ps output_path_sel}]
-set_property SLEW SLOW [get_ports {pe43711_data pe43711_clk pe43711_le pe43711_ps output_path_sel}]
+set_property IOSTANDARD LVCMOS18 [get_ports {relay_atten_5db relay_atten_10db relay_atten_15db relay_atten_20db output_path_sel}]
+set_property DRIVE 8 [get_ports {relay_atten_5db relay_atten_10db relay_atten_15db relay_atten_20db output_path_sel}]
+set_property SLEW SLOW [get_ports {relay_atten_5db relay_atten_10db relay_atten_15db relay_atten_20db output_path_sel}]
 
 # AD9173 JESD TX。
 # link0 / lanes0-3 -> quad226 -> DAC_SERDIN0..3，承载 DAC0/DAC1 payload。

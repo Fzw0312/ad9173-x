@@ -54,11 +54,14 @@ from .models import (
     build_config_payload,
 )
 from .udp_client import (
-    PE43711_STEP_DB,
+    AD9173_NCO_MAX_AMP,
+    RELAY_ATTENUATOR_STEP_DB,
     UdpRuntimeConfigStreamer,
     UdpWaveformClient,
     build_dac_dds_config_payload,
     calculate_rf_output_control,
+    relay_attenuation_db_from_mask,
+    relay_mask_for_attenuation_db,
 )
 from .lf_calibration import LfCalibrationTable
 from .rf_calibration import RfCalibrationTable
@@ -75,19 +78,45 @@ matplotlib.rcParams["font.sans-serif"] = [
 matplotlib.rcParams["axes.unicode_minus"] = False
 
 
-LF_SWEEP_MIN_HZ = 1e-3
+DDS_FTW_BITS = 48
+DDS_SAMPLE_RATE_HZ = 983_040_000.0
+MIN_TARGET_FREQUENCY_HZ = 0.0
+LF_SWEEP_MIN_HZ = DDS_SAMPLE_RATE_HZ / float(1 << DDS_FTW_BITS)
 LF_SWEEP_MAX_HZ = 10_000_000.0
 RF_SWEEP_MIN_HZ = 10_000_000.0
 RF_SWEEP_MAX_HZ = 2_000_000_000.0
-AD9173_RUNTIME_NCO_HZ = 1_474_561_031.9672773
+AUTO_PATH_SPLIT_HZ = 10_000_000.0
+MIN_OUTPUT_AMPLITUDE_VPP = 0.001
+MIN_CALIBRATED_AMPLITUDE_VPP = 0.005
+LF_JESD_SAFE_DRIVE_VPK = 0.85
+LF_JESD_MAX_CALIBRATED_TARGET_VPK = 1.5
+AD9173_RUNTIME_NCO_HZ = 1_474_560_000.0
+RF_MINUS6P5_DBM_VPP_50OHM = 0.29924713121888674
 RF_MAIN_NCO_SHIFT_HZ = 300_000_000.0
 JESD_MAIN_NCO_SHIFT_HZ = 450_000_000.0
 JESD_MAIN_NCO_IF_HZ = 450_000_000.0
 RAM_MAIN_NCO_SHIFT_HZ = 200_000_000.0
 RAM_MAIN_NCO_IF_HZ = 200_000_000.0
+RF_RECALIBRATION_DISABLE_OLD_TABLES = True
 SWEEP_MAX_POINTS = 20_000
 UDP_BROADCAST_TARGETS = {"255.255.255.255", "<broadcast>"}
 FPGA_UDP_ACCEPTED_TARGETS = {"192.168.1.10", *UDP_BROADCAST_TARGETS}
+PREDISTORTION_CHOICES = [
+    ("关闭", None),
+    ("最佳 r=0.0200, p=270°", (0.0200, 270.0)),
+    ("幅度 r=0.0125, p=270°", (0.0125, 270.0)),
+    ("幅度 r=0.0150, p=270°", (0.0150, 270.0)),
+    ("幅度 r=0.0175, p=270°", (0.0175, 270.0)),
+    ("幅度 r=0.0225, p=270°", (0.0225, 270.0)),
+    ("幅度 r=0.0250, p=270°", (0.0250, 270.0)),
+    ("幅度 r=0.0300, p=270°", (0.0300, 270.0)),
+    ("相位 p=180°, r=0.0200", (0.0200, 180.0)),
+    ("相位 p=210°, r=0.0200", (0.0200, 210.0)),
+    ("相位 p=240°, r=0.0200", (0.0200, 240.0)),
+    ("相位 p=300°, r=0.0200", (0.0200, 300.0)),
+    ("相位 p=330°, r=0.0200", (0.0200, 330.0)),
+    ("相位 p=0°, r=0.0200", (0.0200, 0.0)),
+]
 
 
 def _windows_ipv4_entries() -> list[dict]:
@@ -465,8 +494,16 @@ class MainWindow(QMainWindow):
         self.vio_ready = False
         self.vio_pending_commands: list[tuple[str, str, bool]] = []
         self.vio_startup_quiet = False
-        self.rf_calibration = RfCalibrationTable.load_latest(Path(__file__).resolve().parents[2])
-        self.lf_calibration = LfCalibrationTable.load_latest(Path(__file__).resolve().parents[2])
+        repo_root = Path(__file__).resolve().parents[2]
+        self.rf_calibration = None if RF_RECALIBRATION_DISABLE_OLD_TABLES else RfCalibrationTable.load_latest(repo_root)
+        self.rf_jesd_calibration = (
+            None
+            if RF_RECALIBRATION_DISABLE_OLD_TABLES
+            else RfCalibrationTable.load_latest(repo_root, output_mode="jesd_tone")
+        )
+        self.rf_ram_calibration = RfCalibrationTable.load_latest(repo_root, output_mode="ram_waveform")
+        self.lf_calibration = LfCalibrationTable.load_latest(repo_root)
+        self.lf_jesd_calibration = LfCalibrationTable.load_latest(repo_root, output_mode="jesd_tone")
         self.preview_timer = QTimer(self)
         self.preview_timer.setSingleShot(True)
         self.preview_timer.setInterval(180)
@@ -513,7 +550,7 @@ class MainWindow(QMainWindow):
         self.sample_rate_unit = QComboBox()
         self.sample_rate_unit.addItems(SAMPLE_RATE_UNITS.keys())
         self.sample_rate_unit.setCurrentText("MSPS")
-        self._rf_amplitude_unit = "V"
+        self._rf_amplitude_unit = "Vpp"
 
         self.output_mode = QComboBox()
         for mode_key, mode_label in OUTPUT_MODES.items():
@@ -521,7 +558,7 @@ class MainWindow(QMainWindow):
         nco_index = self.output_mode.findData("nco_only")
         self.output_mode.setCurrentIndex(nco_index if nco_index >= 0 else 0)
         self.output_mode.setEnabled(True)
-        self.output_mode.setToolTip("DDS单音输出走 VIO 配置片内 NCO；任意波形输出使用 UDP DATA/COMMIT")
+        self.output_mode.setToolTip("SPI调试走 VIO/SPI 配置片内 NCO；DDS单音输出由 FPGA 经 JESD 送样点")
         self.modulation_type = QComboBox()
         for mod_key, mod_label in MODULATION_TYPES.items():
             self.modulation_type.addItem(mod_label, mod_key)
@@ -623,42 +660,51 @@ class MainWindow(QMainWindow):
                 item = QTableWidgetItem(f"{value:g}")
                 self.harmonic_table.setItem(row, column, item)
         self.harmonic_table.resizeColumnsToContents()
+        self.predistortion_waveform = QComboBox()
+        for label, payload in PREDISTORTION_CHOICES:
+            self.predistortion_waveform.addItem(label, payload)
+        self.predistortion_waveform.setCurrentIndex(1)
+        self.predistortion_waveform.setToolTip("仅对 RF 任意波形 Sine 直出有效；高频 main-NCO 搬移时自动关闭")
 
         self.output_path = QComboBox()
         for path_key, path_label in OUTPUT_PATHS.items():
             self.output_path.addItem(path_label, path_key)
         self.output_path.setCurrentIndex(0)
         self.rf_target_frequency = QDoubleSpinBox()
-        self.rf_target_frequency.setRange(RF_SWEEP_MIN_HZ / 1e6, RF_SWEEP_MAX_HZ / 1e6)
-        self.rf_target_frequency.setDecimals(6)
+        self.rf_target_frequency.setRange(MIN_TARGET_FREQUENCY_HZ, RF_SWEEP_MAX_HZ / 1e6)
+        self.rf_target_frequency.setDecimals(2)
         self.rf_target_frequency.setSingleStep(1.0)
         self.rf_target_frequency.setValue(20.0)
         self.rf_target_frequency.setSuffix(" ")
         self.rf_target_frequency_unit = QComboBox()
-        self.rf_target_frequency_unit.addItems(("mHz", "Hz", "kHz", "MHz", "GHz"))
+        self.rf_target_frequency_unit.addItems(("uHz", "mHz", "Hz", "kHz", "MHz", "GHz"))
         self.rf_target_frequency_unit.setCurrentText("MHz")
         self._rf_frequency_unit = "MHz"
         self.rf_target_amplitude = QDoubleSpinBox()
-        self.rf_target_amplitude.setRange(0.01, 3.0)
+        self.rf_target_amplitude.setRange(MIN_OUTPUT_AMPLITUDE_VPP, 3.0)
         self.rf_target_amplitude.setDecimals(4)
-        self.rf_target_amplitude.setSingleStep(0.01)
-        self.rf_target_amplitude.setValue(1.0)
+        self.rf_target_amplitude.setSingleStep(0.001)
+        self.rf_target_amplitude.setValue(3.0)
         self.rf_target_amplitude.setSuffix(" ")
         self.rf_target_amplitude_unit = QComboBox()
-        self.rf_target_amplitude_unit.addItems(("V", "mV"))
-        self.rf_target_amplitude_unit.setCurrentText("V")
-        self.pe43711_atten_db = QDoubleSpinBox()
-        self.pe43711_atten_db.setRange(0.0, 31.75)
-        self.pe43711_atten_db.setDecimals(2)
-        self.pe43711_atten_db.setSingleStep(0.25)
-        self.pe43711_atten_db.setValue(16.0)
-        self.pe43711_atten_db.setSuffix(" dB")
-        self.pe43711_code = QSpinBox()
-        self.pe43711_code.setRange(0, 127)
-        self.pe43711_code.setValue(64)
-        self.pe43711_code.setPrefix("0x")
-        self.pe43711_code.setDisplayIntegerBase(16)
-        self.rf_atten_preview = QLabel("PE43711: 16.00 dB, code 0x40")
+        self.rf_target_amplitude_unit.addItems(("Vpp", "mVpp"))
+        self.rf_target_amplitude_unit.setCurrentText("Vpp")
+        self.relay_atten_db = QDoubleSpinBox()
+        self.relay_atten_db.setRange(0.0, 50.0)
+        self.relay_atten_db.setDecimals(1)
+        self.relay_atten_db.setSingleStep(RELAY_ATTENUATOR_STEP_DB)
+        self.relay_atten_db.setValue(0.0)
+        self.relay_atten_db.setSuffix(" dB")
+        self.relay_atten_mask = QSpinBox()
+        self.relay_atten_mask.setRange(0, 15)
+        self.relay_atten_mask.setValue(0x00)
+        self.relay_atten_mask.setPrefix("0x")
+        self.relay_atten_mask.setDisplayIntegerBase(16)
+        self.relay_auto_calibration = QCheckBox("自动校准衰减")
+        self.relay_auto_calibration.setChecked(False)
+        self.relay_auto_calibration.setToolTip("高频重校准时默认关闭旧 RF 表；取消勾选后使用下方手动衰减值。")
+        self.relay_apply_button = QPushButton("应用衰减")
+        self.rf_atten_preview = QLabel("Relay attenuator: 0.0 dB, mask 0x0")
 
         self.sample_count = QSpinBox()
         self.sample_count.setRange(256, MAX_WAVEFORM_SAMPLES)
@@ -682,7 +728,6 @@ class MainWindow(QMainWindow):
 
         self.preview_button = QPushButton("刷新预览")
         self.load_button = QPushButton("加载 BIN")
-        self.text_wave_button = QPushButton("生成汉字 BIN")
         self.save_button = QPushButton("保存 BIN")
         self.hello_button = QPushButton("UDP 测试")
         self.config_button = QPushButton("发送 DDS 配置")
@@ -690,7 +735,7 @@ class MainWindow(QMainWindow):
         self.vio_status_button = QPushButton("VIO 状态")
         self.send_button = QPushButton("发送波形")
         self.sweep_path = QComboBox()
-        self.sweep_path.addItem("LF 1mHz-10MHz", "lf")
+        self.sweep_path.addItem("LF 3.49uHz-10MHz", "lf")
         self.sweep_path.addItem("RF 10MHz-2GHz", "rf")
         self.sweep_path.addItem("LF+RF 分段", "segmented")
         self.sweep_mode = QComboBox()
@@ -737,10 +782,10 @@ class MainWindow(QMainWindow):
         self.sweep_repeat = QCheckBox("循环扫频")
         self.sweep_repeat.setChecked(True)
         self.sweep_amplitude = QDoubleSpinBox()
-        self.sweep_amplitude.setRange(0.001, 3.0)
+        self.sweep_amplitude.setRange(MIN_OUTPUT_AMPLITUDE_VPP, 3.0)
         self.sweep_amplitude.setDecimals(4)
         self.sweep_amplitude.setSingleStep(0.01)
-        self.sweep_amplitude.setValue(1.0)
+        self.sweep_amplitude.setValue(3.0)
         self.sweep_amplitude.setSuffix(" ")
         self.sweep_amplitude_unit = QComboBox()
         self.sweep_amplitude_unit.addItems(("Vpp", "mVpp"))
@@ -820,6 +865,7 @@ class MainWindow(QMainWindow):
 
     def _network_group(self) -> QGroupBox:
         group = QGroupBox("UDP 链路")
+        group.setObjectName("networkGroup")
         form = QFormLayout()
         form.setLabelAlignment(Qt.AlignRight)
         form.addRow("板卡 IP", self.ip_edit)
@@ -882,8 +928,10 @@ class MainWindow(QMainWindow):
         rf_amp_row.addWidget(self.rf_target_amplitude, 2)
         rf_amp_row.addWidget(self.rf_target_amplitude_unit, 1)
         pe_row = QHBoxLayout()
-        pe_row.addWidget(self.pe43711_atten_db, 2)
-        pe_row.addWidget(self.pe43711_code, 1)
+        pe_row.addWidget(self.relay_auto_calibration, 1)
+        pe_row.addWidget(self.relay_atten_db, 2)
+        pe_row.addWidget(self.relay_atten_mask, 1)
+        pe_row.addWidget(self.relay_apply_button, 1)
 
         self.modulation_params = QWidget()
         self.modulation_params.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
@@ -942,14 +990,14 @@ class MainWindow(QMainWindow):
         self.modulation_params.setLayout(self.modulation_params_form)
 
         form.addRow("输出模式", self.output_mode)
-        form.addRow("输出通路", self.output_path)
         self.target_frequency_label = QLabel("RF 目标频率")
         self.target_amplitude_label = QLabel("RF 目标幅度")
         form.addRow(self.target_frequency_label, rf_freq_row)
         form.addRow(self.target_amplitude_label, rf_amp_row)
         form.addRow("调制类型", self.modulation_type)
+        form.addRow("预失真处理波形", self.predistortion_waveform)
         form.addRow(self.modulation_params)
-        form.addRow("PE43711", pe_row)
+        form.addRow("继电器衰减", pe_row)
         form.addRow("RF 衰减预览", self.rf_atten_preview)
         form.addRow("", self.use_matlab)
         form.addRow("", self.send_button)
@@ -980,7 +1028,6 @@ class MainWindow(QMainWindow):
         button_row.addWidget(self.sweep_reset_button)
 
         self.sweep_step_row_widget = self._row_widget(step_row)
-        form.addRow("通路", self.sweep_path)
         form.addRow("方式", self.sweep_mode)
         form.addRow("起点", self._row_widget(start_row))
         form.addRow("终点", self._row_widget(stop_row))
@@ -1011,7 +1058,7 @@ class MainWindow(QMainWindow):
         form.addRow("DAC 满幅", self.full_scale)
         form.addRow("Main NCO", self.main_nco_frequency)
         form.addRow("界面字号", self.ui_font_size)
-        for button in (self.preview_button, self.load_button, self.text_wave_button, self.save_button):
+        for button in (self.preview_button, self.load_button, self.save_button):
             button.setMinimumHeight(36)
             button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         button_grid = QGridLayout()
@@ -1019,8 +1066,7 @@ class MainWindow(QMainWindow):
         button_grid.setVerticalSpacing(8)
         button_grid.addWidget(self.preview_button, 0, 0)
         button_grid.addWidget(self.load_button, 0, 1)
-        button_grid.addWidget(self.text_wave_button, 1, 0)
-        button_grid.addWidget(self.save_button, 1, 1)
+        button_grid.addWidget(self.save_button, 1, 0, 1, 2)
         form.addRow("", button_grid)
         group.setLayout(form)
         return group
@@ -1051,19 +1097,21 @@ class MainWindow(QMainWindow):
         self.harmonic_add_button.clicked.connect(self.add_harmonic_row)
         self.harmonic_remove_button.clicked.connect(self.remove_selected_harmonic_row)
         self.harmonic_reset_button.clicked.connect(self.reset_harmonics)
+        self.predistortion_waveform.currentIndexChanged.connect(lambda _index: self.queue_preview())
         self.output_path.currentIndexChanged.connect(self.on_output_path_changed)
         self.rf_target_frequency.valueChanged.connect(self.on_rf_target_frequency_changed)
         self.rf_target_frequency_unit.currentTextChanged.connect(self.on_rf_target_frequency_unit_changed)
         self.rf_target_amplitude.valueChanged.connect(self.on_rf_target_amplitude_changed)
         self.rf_target_amplitude_unit.currentTextChanged.connect(self.on_rf_target_amplitude_unit_changed)
-        self.pe43711_atten_db.valueChanged.connect(self.on_pe43711_atten_changed)
-        self.pe43711_code.valueChanged.connect(self.on_pe43711_code_changed)
+        self.relay_auto_calibration.stateChanged.connect(lambda _state: self.queue_preview())
+        self.relay_atten_db.valueChanged.connect(self.on_relay_atten_changed)
+        self.relay_atten_mask.valueChanged.connect(self.on_relay_mask_changed)
+        self.relay_apply_button.clicked.connect(self.apply_relay_attenuation)
         self.sample_count.valueChanged.connect(lambda _value: self.on_waveform_timing_changed())
         self.full_scale.valueChanged.connect(lambda _value: self.queue_preview())
         self.ui_font_size.valueChanged.connect(self.apply_user_font_size)
         self.preview_button.clicked.connect(self.update_preview)
         self.load_button.clicked.connect(self.load_binary)
-        self.text_wave_button.clicked.connect(self.generate_text_binary)
         self.save_button.clicked.connect(self.save_binary)
         self.hello_button.clicked.connect(self.send_hello)
         self.config_button.clicked.connect(self.send_config)
@@ -1075,6 +1123,7 @@ class MainWindow(QMainWindow):
         self.sweep_start_unit.currentTextChanged.connect(self.on_sweep_start_unit_changed)
         self.sweep_stop_unit.currentTextChanged.connect(self.on_sweep_stop_unit_changed)
         self.sweep_step_unit.currentTextChanged.connect(self.on_sweep_step_unit_changed)
+        self.sweep_amplitude_unit.currentTextChanged.connect(self.on_sweep_amplitude_unit_changed)
         self.sweep_start_button.clicked.connect(self.start_nco_sweep)
         self.sweep_stop_button.clicked.connect(self.stop_nco_sweep)
         self.sweep_step_button.clicked.connect(self.single_step_nco_sweep)
@@ -1102,27 +1151,17 @@ class MainWindow(QMainWindow):
         current_hz = self.rf_target_frequency.value() * FREQUENCY_UNITS[self._rf_frequency_unit]
         self.rf_target_frequency.blockSignals(True)
         self.rf_target_frequency_unit.blockSignals(True)
-        if is_lf:
-            current_hz = max(1e-3, min(current_hz, 10_000_000.0))
-            unit = self._rf_frequency_unit
-            if unit not in FREQUENCY_UNITS:
-                unit = "MHz"
-            self.rf_target_frequency_unit.setCurrentText(unit)
-            self._rf_frequency_unit = unit
-            self.rf_target_frequency.setRange(1e-3 / FREQUENCY_UNITS[unit], 10_000_000.0 / FREQUENCY_UNITS[unit])
-            self.rf_target_frequency.setValue(current_hz / FREQUENCY_UNITS[unit])
-        else:
-            current_hz = max(RF_SWEEP_MIN_HZ, min(current_hz, RF_SWEEP_MAX_HZ))
-            unit = self._rf_frequency_unit
-            if unit not in FREQUENCY_UNITS:
-                unit = "MHz"
-            self.rf_target_frequency_unit.setCurrentText(unit)
-            self._rf_frequency_unit = unit
-            self.rf_target_frequency.setRange(
-                RF_SWEEP_MIN_HZ / FREQUENCY_UNITS[unit],
-                RF_SWEEP_MAX_HZ / FREQUENCY_UNITS[unit],
-            )
-            self.rf_target_frequency.setValue(current_hz / FREQUENCY_UNITS[unit])
+        current_hz = max(MIN_TARGET_FREQUENCY_HZ, min(current_hz, RF_SWEEP_MAX_HZ))
+        unit = self._rf_frequency_unit
+        if unit not in FREQUENCY_UNITS:
+            unit = "MHz"
+        self.rf_target_frequency_unit.setCurrentText(unit)
+        self._rf_frequency_unit = unit
+        self.rf_target_frequency.setRange(
+            MIN_TARGET_FREQUENCY_HZ / FREQUENCY_UNITS[unit],
+            RF_SWEEP_MAX_HZ / FREQUENCY_UNITS[unit],
+        )
+        self.rf_target_frequency.setValue(current_hz / FREQUENCY_UNITS[unit])
         self.rf_target_frequency_unit.blockSignals(False)
         self.rf_target_frequency.blockSignals(False)
         self.update_main_nco_display()
@@ -1148,7 +1187,7 @@ class MainWindow(QMainWindow):
         return 0
 
     def sync_target_to_output_channel(self) -> None:
-        target_panel = self.ch2 if self.output_path_key() == "lf" else self.ch1
+        target_panel = self.ch1
         target_panel.enable.blockSignals(True)
         target_panel.enable.setChecked(True)
         target_panel.enable.blockSignals(False)
@@ -1201,20 +1240,27 @@ class MainWindow(QMainWindow):
         return str(self.output_mode.currentData() or "jesd_tone")
 
     def output_path_key(self) -> str:
-        return str(self.output_path.currentData() or "rf")
+        return self.output_path_for_frequency(self.rf_target_frequency_hz())
+
+    @staticmethod
+    def output_path_for_frequency(freq_hz: float) -> str:
+        return "lf" if max(0.0, float(freq_hz)) < AUTO_PATH_SPLIT_HZ else "rf"
+
+    def rf_target_amplitude_vpk(self) -> float:
+        return self.rf_target_amplitude_vpp() / 2.0
 
     def rf_settings(self) -> RfSettings:
-        code = max(0, min(int(self.pe43711_code.value()), 127))
-        atten_db = code * PE43711_STEP_DB
+        mask = max(0, min(int(self.relay_atten_mask.value()), 15))
+        atten_db = relay_attenuation_db_from_mask(mask)
         return RfSettings(
             output_path=self.output_path_key(),
-            target_amplitude_vpk=self.rf_target_amplitude_vpp() / 2.0,
-            pe43711_atten_db=atten_db,
-            pe43711_code=code,
+            target_amplitude_vpk=self.rf_target_amplitude_vpk(),
+            relay_atten_db=atten_db,
+            relay_atten_mask=mask,
         )
 
     def rf_target_amplitude_vpp(self) -> float:
-        unit_scale = 1e-3 if self.rf_target_amplitude_unit.currentText() == "mV" else 1.0
+        unit_scale = 1e-3 if self.rf_target_amplitude_unit.currentText() == "mVpp" else 1.0
         return self.rf_target_amplitude.value() * unit_scale
 
     def rf_target_frequency_hz(self) -> float:
@@ -1225,6 +1271,20 @@ class MainWindow(QMainWindow):
 
     def predistortion_safe_hz(self) -> float:
         return 0.5 * self.payload_nyquist_hz()
+
+    def selected_predistortion(self) -> tuple[float, float] | None:
+        payload = self.predistortion_waveform.currentData()
+        if payload is None:
+            return None
+        ratio, phase_deg = payload
+        return float(ratio), float(phase_deg)
+
+    @staticmethod
+    def format_predistortion_label(predistortion: tuple[float, float] | None) -> str:
+        if predistortion is None:
+            return "关闭"
+        ratio, phase_deg = predistortion
+        return f"r={ratio:.4f}, p={phase_deg:.0f}°"
 
     def main_nco_if_hz_for(self, requested_if_hz: float) -> float:
         nyquist_hz = self.payload_nyquist_hz()
@@ -1435,6 +1495,7 @@ class MainWindow(QMainWindow):
         mod_type = str(self.modulation_type.currentData() or "sine")
         analog_mod = ram_mode and mod_type in ("am", "fm", "pm")
         digital_mod = ram_mode and mod_type in ("ask", "fsk", "psk")
+        predistortion_available = ram_mode and mod_type == "sine" and self.output_path_key() == "rf"
         if digital_mod:
             self.update_effective_symbol_rate_display()
         visible_rows: dict[str, set[str]] = {
@@ -1468,24 +1529,44 @@ class MainWindow(QMainWindow):
         self.sawtooth_rise_percent.setEnabled(ram_mode and mod_type == "sawtooth")
         self.square_duty_percent.setEnabled(ram_mode and mod_type == "square")
         self.harmonic_table.setEnabled(ram_mode and mod_type == "harmonic")
+        self.predistortion_waveform.setEnabled(predistortion_available)
 
-    def on_pe43711_atten_changed(self, value: float) -> None:
-        code = max(0, min(127, int(round(float(value) / PE43711_STEP_DB))))
-        self.pe43711_code.blockSignals(True)
-        self.pe43711_code.setValue(code)
-        self.pe43711_code.blockSignals(False)
+    def on_relay_atten_changed(self, value: float) -> None:
+        mask, rounded_db = relay_mask_for_attenuation_db(float(value))
+        self.relay_atten_mask.blockSignals(True)
+        self.relay_atten_mask.setValue(mask)
+        self.relay_atten_mask.blockSignals(False)
+        if abs(rounded_db - float(value)) > 1e-9:
+            self.relay_atten_db.blockSignals(True)
+            self.relay_atten_db.setValue(rounded_db)
+            self.relay_atten_db.blockSignals(False)
         self.queue_preview()
 
-    def on_pe43711_code_changed(self, value: int) -> None:
-        atten_db = max(0, min(int(value), 127)) * PE43711_STEP_DB
-        self.pe43711_atten_db.blockSignals(True)
-        self.pe43711_atten_db.setValue(atten_db)
-        self.pe43711_atten_db.blockSignals(False)
+    def on_relay_mask_changed(self, value: int) -> None:
+        atten_db = relay_attenuation_db_from_mask(int(value))
+        self.relay_atten_db.blockSignals(True)
+        self.relay_atten_db.setValue(atten_db)
+        self.relay_atten_db.blockSignals(False)
         self.queue_preview()
+
+    def apply_relay_attenuation(self) -> None:
+        relay_mask = self.relay_atten_mask.value() & 0x0F
+        self.append_log(
+            f"Apply relay attenuation: {self.relay_atten_db.value():.1f} dB, "
+            f"mask=0x{relay_mask:X}"
+        )
+        self.send_vio_command(
+            f"ku5p_vio_set_relay {relay_mask:01x}",
+            "应用继电器衰减/RF-LF 开关",
+        )
 
     def on_rf_target_frequency_changed(self, value: float) -> None:
         self.sync_target_to_output_channel()
+        self.update_output_path_controls()
+        self.update_modulation_controls()
         self.update_main_nco_display()
+        if self.output_mode_key() == "ram_waveform":
+            self.on_output_mode_changed()
         self.queue_preview()
 
     def on_rf_target_frequency_unit_changed(self, new_unit: str) -> None:
@@ -1499,6 +1580,7 @@ class MainWindow(QMainWindow):
 
     def on_output_path_changed(self, _index: int | None = None) -> None:
         self.update_output_path_controls()
+        self.update_modulation_controls()
         self.on_rf_target_frequency_changed(self.rf_target_frequency.value())
         self.queue_preview()
 
@@ -1507,17 +1589,17 @@ class MainWindow(QMainWindow):
         self.queue_preview()
 
     def on_rf_target_amplitude_unit_changed(self, new_unit: str) -> None:
-        old_scale = 1e-3 if self._rf_amplitude_unit == "mV" else 1.0
-        new_scale = 1e-3 if new_unit == "mV" else 1.0
+        old_scale = 1e-3 if self._rf_amplitude_unit == "mVpp" else 1.0
+        new_scale = 1e-3 if new_unit == "mVpp" else 1.0
         amplitude_v = self.rf_target_amplitude.value() * old_scale
         self.rf_target_amplitude.blockSignals(True)
-        if new_unit == "mV":
-            self.rf_target_amplitude.setRange(10.0, 3000.0)
-            self.rf_target_amplitude.setSingleStep(10.0)
-            self.rf_target_amplitude.setDecimals(2)
+        if new_unit == "mVpp":
+            self.rf_target_amplitude.setRange(MIN_OUTPUT_AMPLITUDE_VPP * 1e3, 3000.0)
+            self.rf_target_amplitude.setSingleStep(1.0)
+            self.rf_target_amplitude.setDecimals(3)
         else:
-            self.rf_target_amplitude.setRange(0.01, 3.0)
-            self.rf_target_amplitude.setSingleStep(0.01)
+            self.rf_target_amplitude.setRange(MIN_OUTPUT_AMPLITUDE_VPP, 3.0)
+            self.rf_target_amplitude.setSingleStep(0.001)
             self.rf_target_amplitude.setDecimals(4)
         self.rf_target_amplitude.setValue(amplitude_v / new_scale)
         self.rf_target_amplitude.blockSignals(False)
@@ -1525,23 +1607,42 @@ class MainWindow(QMainWindow):
         self.sync_target_to_output_channel()
         self.queue_preview()
 
+    def on_sweep_amplitude_unit_changed(self, new_unit: str) -> None:
+        old_scale = 1e-3 if getattr(self, "_sweep_amplitude_unit", "Vpp") == "mVpp" else 1.0
+        new_scale = 1e-3 if new_unit == "mVpp" else 1.0
+        amplitude_v = self.sweep_amplitude.value() * old_scale
+        self.sweep_amplitude.blockSignals(True)
+        if new_unit == "mVpp":
+            self.sweep_amplitude.setRange(MIN_OUTPUT_AMPLITUDE_VPP * 1e3, 3000.0)
+            self.sweep_amplitude.setSingleStep(1.0)
+            self.sweep_amplitude.setDecimals(3)
+        else:
+            self.sweep_amplitude.setRange(MIN_OUTPUT_AMPLITUDE_VPP, 3.0)
+            self.sweep_amplitude.setSingleStep(0.001)
+            self.sweep_amplitude.setDecimals(4)
+        self.sweep_amplitude.setValue(amplitude_v / new_scale)
+        self.sweep_amplitude.blockSignals(False)
+        self._sweep_amplitude_unit = new_unit
+        self.queue_preview()
+
     def on_output_mode_changed(self, _index: int | None = None) -> None:
         mode = self.output_mode_key()
         nco_only = mode == "nco_only"
         ram_mode = mode == "ram_waveform"
-        self.send_button.setEnabled(nco_only or ram_mode)
+        self.send_button.setEnabled(mode in ("nco_only", "jesd_tone", "ram_waveform"))
+        self.send_button.setText("发送波形" if ram_mode else "发送配置")
         self.use_matlab.setEnabled(ram_mode)
         self.update_modulation_controls()
         if ram_mode:
             self.status.setText("任意波形输出：通过 UDP DATA/COMMIT 写入 waveform RAM")
         elif nco_only:
-            self.status.setText("DDS单音输出：通过 VIO 配置 AD9173 片内 NCO")
+            self.status.setText("SPI调试：通过 VIO/SPI 配置 AD9173 片内 NCO")
         else:
-            self.status.setText("JESD 单音模式：DDS 配置驱动 PL 生成 JESD 样点")
+            self.status.setText("DDS单音输出：DDS 配置驱动 PL 生成 JESD 样点")
         self.queue_preview()
 
     def sweep_path_key(self) -> str:
-        return str(self.sweep_path.currentData() or "lf")
+        return "auto"
 
     def sweep_mode_key(self) -> str:
         return str(self.sweep_mode.currentData() or "linear")
@@ -1585,48 +1686,24 @@ class MainWindow(QMainWindow):
         return unit
 
     def reset_sweep_range(self) -> None:
-        path_key = self.sweep_path_key()
-        if path_key == "rf":
-            self._sweep_start_unit = self._set_sweep_value(
-                self.sweep_start,
-                self.sweep_start_unit,
-                RF_SWEEP_MIN_HZ,
-                "MHz",
-            )
-            self._sweep_stop_unit = self._set_sweep_value(
-                self.sweep_stop,
-                self.sweep_stop_unit,
-                RF_SWEEP_MAX_HZ,
-                "GHz",
-            )
-            self._sweep_step_unit = self._set_sweep_value(
-                self.sweep_step,
-                self.sweep_step_unit,
-                10_000_000.0,
-                "MHz",
-            )
-        else:
-            stop_hz = RF_SWEEP_MAX_HZ if path_key == "segmented" else LF_SWEEP_MAX_HZ
-            stop_unit = "GHz" if path_key == "segmented" else "MHz"
-            step_hz = 1_000_000.0 if path_key == "segmented" else 100_000.0
-            self._sweep_start_unit = self._set_sweep_value(
-                self.sweep_start,
-                self.sweep_start_unit,
-                LF_SWEEP_MIN_HZ,
-                "mHz",
-            )
-            self._sweep_stop_unit = self._set_sweep_value(
-                self.sweep_stop,
-                self.sweep_stop_unit,
-                stop_hz,
-                stop_unit,
-            )
-            self._sweep_step_unit = self._set_sweep_value(
-                self.sweep_step,
-                self.sweep_step_unit,
-                step_hz,
-                "kHz" if path_key == "lf" else "MHz",
-            )
+        self._sweep_start_unit = self._set_sweep_value(
+            self.sweep_start,
+            self.sweep_start_unit,
+            LF_SWEEP_MIN_HZ,
+            "uHz",
+        )
+        self._sweep_stop_unit = self._set_sweep_value(
+            self.sweep_stop,
+            self.sweep_stop_unit,
+            RF_SWEEP_MAX_HZ,
+            "GHz",
+        )
+        self._sweep_step_unit = self._set_sweep_value(
+            self.sweep_step,
+            self.sweep_step_unit,
+            1_000_000.0,
+            "MHz",
+        )
         self.sweep_index = 0
         self.sweep_points = []
         self.update_sweep_controls()
@@ -1642,7 +1719,6 @@ class MainWindow(QMainWindow):
             self.sweep_log_ratio_label.setVisible(log_mode)
             self.sweep_log_ratio.setVisible(log_mode)
         for widget in (
-            self.sweep_path,
             self.sweep_mode,
             self.sweep_start,
             self.sweep_start_unit,
@@ -1663,10 +1739,6 @@ class MainWindow(QMainWindow):
         self.sweep_stop_button.setEnabled(running)
 
     def sweep_frequency_bounds(self, path_key: str) -> list[tuple[str, float, float]]:
-        if path_key == "lf":
-            return [("lf", LF_SWEEP_MIN_HZ, LF_SWEEP_MAX_HZ)]
-        if path_key == "rf":
-            return [("rf", RF_SWEEP_MIN_HZ, RF_SWEEP_MAX_HZ)]
         return [
             ("lf", LF_SWEEP_MIN_HZ, LF_SWEEP_MAX_HZ),
             ("rf", RF_SWEEP_MIN_HZ, RF_SWEEP_MAX_HZ),
@@ -1682,7 +1754,9 @@ class MainWindow(QMainWindow):
         for unit, scale in (("GHz", 1e9), ("MHz", 1e6), ("kHz", 1e3), ("Hz", 1.0)):
             if abs(freq_hz) >= scale:
                 return f"{freq_hz / scale:.6g} {unit}"
-        return f"{freq_hz / 1e-3:.6g} mHz"
+        if abs(freq_hz) >= 1e-3:
+            return f"{freq_hz / 1e-3:.6g} mHz"
+        return f"{freq_hz / 1e-6:.6g} uHz"
 
     def _linear_frequency_points(self, start_hz: float, stop_hz: float, step_hz: float) -> list[float]:
         if step_hz <= 0.0:
@@ -1741,7 +1815,7 @@ class MainWindow(QMainWindow):
             else:
                 segment_points = self._linear_frequency_points(segment_start, segment_stop, step_hz)
             for freq_hz in segment_points:
-                points.append((path_key, freq_hz))
+                points.append((self.output_path_for_frequency(freq_hz), freq_hz))
         if not points:
             raise ValueError("当前起止频率不在所选通路范围内")
         if len(points) > SWEEP_MAX_POINTS:
@@ -1814,14 +1888,24 @@ class MainWindow(QMainWindow):
         return Path(__file__).resolve().parents[2]
 
     def default_bit_path(self) -> Path:
-        return (
+        build_root = (
             self.repo_root()
             / "build"
             / "vivado"
             / "ad9173_dac_only"
-            / "ku5p_vivado"
-            / "ku5p_dac_only_top.bit"
         )
+        bit_path = build_root / "ku5p_vivado" / "ku5p_dac_only_top.bit"
+        if bit_path.exists():
+            return bit_path
+
+        archived = sorted(
+            (build_root / "bit_archive").glob("*/ku5p_dac_only_top.bit"),
+            key=lambda path: path.stat().st_mtime,
+            reverse=True,
+        )
+        if archived:
+            return archived[0]
+        return bit_path
 
     def choose_bit_file(self) -> None:
         path, _ = QFileDialog.getOpenFileName(
@@ -1860,9 +1944,15 @@ class MainWindow(QMainWindow):
 
         bit_path = Path(self.bit_path_edit.text().strip()).expanduser()
         if not bit_path.exists():
-            self.append_log(f"bit file not found: {bit_path}")
-            self.status.setText("bit file not found")
-            return
+            fallback_bit = self.default_bit_path()
+            if fallback_bit.exists():
+                self.append_log(f"bit file not found: {bit_path}; using latest bit: {fallback_bit}")
+                bit_path = fallback_bit
+                self.bit_path_edit.setText(str(bit_path))
+            else:
+                self.append_log(f"bit file not found: {bit_path}")
+                self.status.setText("bit file not found")
+                return
 
         script_path = self.repo_root() / "Prj" / "scripts" / "hw_program_only.tcl"
         if not script_path.exists():
@@ -1936,6 +2026,7 @@ class MainWindow(QMainWindow):
     def set_vio_controls_enabled(self, enabled: bool) -> None:
         self.vio_nco_button.setEnabled(enabled)
         self.vio_status_button.setEnabled(enabled)
+        self.relay_apply_button.setEnabled(enabled)
         self.update_sweep_controls()
 
     def vio_script_path(self) -> Path:
@@ -2018,27 +2109,20 @@ class MainWindow(QMainWindow):
 
     def send_vio_nco_config(self, quiet_success: bool = False) -> None:
         try:
-            channels = self.channel_settings()
-            if not channels or not channels[0].enabled:
-                raise ValueError("CH1 未启用")
-            path_key = self.output_path_key()
-            frequency_hz = channels[0].frequency_hz()
-            target_vpk = self.rf_settings().target_amplitude_vpk
-            command, config, ftws, scales, pe_code, path_sel = self.build_vio_nco_command(
-                path_key,
-                frequency_hz,
-                target_vpk,
+            command, config, ftws, scales, relay_mask, path_sel = self.build_vio_panel_nco_command(
                 fast=quiet_success,
             )
             if quiet_success:
-                self.append_log(self.format_dds_success_log(config, ftws, scales, pe_code, path_sel))
+                self.append_log(self.format_dds_success_log(config, ftws, scales, relay_mask, path_sel))
             else:
+                channels = config.get("channels") or [{}, {}]
                 self.append_log(
-                    "VIO NCO config: "
+                    "VIO panel NCO config: "
                     f"CH1 amp=0x{scales[0]:04X} ftw=0x{ftws[0]:012X}, "
                     f"CH2 amp=0x{scales[2]:04X} ftw=0x{ftws[2]:012X}, "
-                    f"PE43711=0x{pe_code:02X}, path_sel={path_sel}, "
-                    f"freq={self.format_frequency_hz(frequency_hz)}"
+                    f"relay_mask=0x{relay_mask:02X}, path_sel={path_sel}, "
+                    f"CH1 freq={self.format_frequency_hz(float(channels[0].get('frequency_hz', 0.0)))}, "
+                    f"CH2 freq={self.format_frequency_hz(float(channels[1].get('frequency_hz', 0.0)))}"
                 )
                 rf_cal = config.get("rf", {}).get("calibration", {})
                 if rf_cal.get("enabled"):
@@ -2047,7 +2131,7 @@ class MainWindow(QMainWindow):
                         f"raw={float(rf_cal.get('raw_vpp', 0.0)):.4g} Vpp, "
                         f"expected={float(rf_cal.get('expected_vpp', 0.0)):.4g} Vpp, "
                         f"amp=0x{int(rf_cal.get('amp_code', 0)):04X}, "
-                        f"PE=0x{int(rf_cal.get('pe43711_code', 0)):02X}"
+                        f"relay=0x{int(rf_cal.get('relay_atten_mask', 0)):02X}"
                     )
                 lf_cal = config.get("rf", {}).get("lf_calibration", {})
                 if lf_cal.get("enabled"):
@@ -2057,7 +2141,7 @@ class MainWindow(QMainWindow):
                         f"expected={float(lf_cal.get('expected_vpp', 0.0)):.4g} Vpp, "
                         f"amp=0x{int(lf_cal.get('amp_code', 0)):04X}"
                     )
-            if not self.send_vio_command(command, "VIO 发送 NCO", log_command=not quiet_success, quiet=quiet_success):
+            if not self.send_vio_command(command, "VIO 发送面板 NCO", log_command=not quiet_success, quiet=quiet_success):
                 return
             self.status.setText("DDS配置成功")
         except Exception as exc:
@@ -2069,24 +2153,30 @@ class MainWindow(QMainWindow):
         config: dict,
         ftws: list[int],
         scales: list[int],
-        pe_code: int,
+        relay_mask: int,
         path_sel: int,
     ) -> str:
         rf = config.get("rf", {})
-        channels = config.get("channels") or [{}]
-        frequency_hz = float(rf.get("target_frequency_hz", channels[0].get("frequency_hz", 0.0)))
-        target_vpk = float(rf.get("target_amplitude_vpk", 0.0))
+        channels = config.get("channels") or [{}, {}]
+        if len(channels) < 2:
+            channels = [*channels, {}]
+        ch1_frequency_hz = float(channels[0].get("frequency_hz", 0.0))
+        ch2_frequency_hz = float(channels[1].get("frequency_hz", 0.0))
+        ch1_target_vpk = float(channels[0].get("amplitude_vpk", 0.0))
+        ch2_target_vpk = float(channels[1].get("amplitude_vpk", 0.0))
         return (
             "DDS配置成功：配置信息："
-            f"模式=DDS单音输出，"
-            f"通路={rf.get('output_path_label', self.output_path.currentText())}，"
-            f"频率={self.format_frequency_hz(frequency_hz)}，"
-            f"幅度={target_vpk:.4g} Vpk，"
+            f"模式=SPI调试，"
+            f"通路={rf.get('output_path_label')}，"
+            f"CH1频率={self.format_frequency_hz(ch1_frequency_hz)}，"
+            f"CH1幅度={ch1_target_vpk:.4g} Vpk，"
             f"CH1幅度码=0x{scales[0]:04X}，"
             f"CH1 FTW=0x{ftws[0]:012X}，"
+            f"CH2频率={self.format_frequency_hz(ch2_frequency_hz)}，"
+            f"CH2幅度={ch2_target_vpk:.4g} Vpk，"
             f"CH2幅度码=0x{scales[2]:04X}，"
             f"CH2 FTW=0x{ftws[2]:012X}，"
-            f"PE43711=0x{pe_code:02X}，"
+            f"relay_mask=0x{relay_mask:02X}，"
             f"path_sel={path_sel}"
         )
 
@@ -2189,7 +2279,7 @@ class MainWindow(QMainWindow):
             return False
         path_key, freq_hz = self.sweep_points[self.sweep_index]
         point_number = self.sweep_index + 1
-        _command, config, _ftws, scales, pe_code, path_sel = self.build_vio_nco_command(
+        _command, config, _ftws, scales, relay_mask, path_sel = self.build_vio_nco_command(
             path_key,
             freq_hz,
             self.sweep_amplitude_vpk(),
@@ -2203,8 +2293,8 @@ class MainWindow(QMainWindow):
         self.sweep_status.setText(
             f"{point_number}/{len(self.sweep_points)} "
             f"{path_key.upper()} {self.format_frequency_hz(freq_hz)} "
-            f"amp=0x{scales[0] if path_sel == 0 else scales[2]:04X} "
-            f"PE=0x{pe_code:02X}"
+            f"amp=0x{scales[0] if path_sel == 1 else scales[2]:04X} "
+            f"relay=0x{relay_mask:02X}"
         )
         self.status.setText(self.sweep_status.text())
         self.sweep_index += 1
@@ -2216,25 +2306,25 @@ class MainWindow(QMainWindow):
         start_path, start_hz = points[0]
         stop_path, stop_hz = points[-1]
         paths_in_sweep = {path for path, _freq in points}
-        segmented = self.sweep_path_key() == "segmented" and paths_in_sweep == {"lf", "rf"}
+        segmented = paths_in_sweep == {"lf", "rf"}
         if start_path != stop_path and not segmented:
             raise ValueError("非分段扫频不能跨通路")
         target_vpk = self.sweep_amplitude_vpk()
         if segmented:
             lf_start_hz = next(freq for path, freq in points if path == "lf")
             rf_start_hz = next(freq for path, freq in points if path == "rf")
-            _lf_command, _lf_config, lf_ftws, lf_scales, _lf_pe_code, _lf_path_sel = (
+            _lf_command, _lf_config, lf_ftws, lf_scales, _lf_relay_mask, _lf_path_sel = (
                 self.build_vio_nco_command("lf", lf_start_hz, target_vpk)
             )
-            _rf_command, _rf_config, rf_ftws, rf_scales, pe_code, _rf_path_sel = (
+            _rf_command, _rf_config, rf_ftws, rf_scales, relay_mask, _rf_path_sel = (
                 self.build_vio_nco_command("rf", rf_start_hz, target_vpk)
             )
             ftws = [rf_ftws[0], 0, lf_ftws[2], 0]
             scales = [rf_scales[0], 0, lf_scales[2], 0]
-            path_sel = 1
+            path_sel = 0
             segment_ftw = rf_ftws[0]
         else:
-            start_command, _start_config, ftws, scales, pe_code, path_sel = self.build_vio_nco_command(
+            start_command, _start_config, ftws, scales, relay_mask, path_sel = self.build_vio_nco_command(
                 start_path,
                 start_hz,
                 target_vpk,
@@ -2263,7 +2353,7 @@ class MainWindow(QMainWindow):
             f"{ftws[0]:012x}",
             f"{scales[2]:04x}",
             f"{ftws[2]:012x}",
-            f"{pe_code:02x}",
+            f"{relay_mask:01x}",
             str(path_sel),
             f"{stop_ftw:012x}",
             f"{step_ftw:012x}",
@@ -2273,7 +2363,7 @@ class MainWindow(QMainWindow):
             f"{segment_ftw:012x}",
         ])
         summary = (
-            f"start_ftw=0x{(ftws[2] if path_sel else ftws[0]):012X}, "
+            f"start_ftw=0x{(ftws[0] if path_sel else ftws[2]):012X}, "
             f"stop_ftw=0x{stop_ftw:012X}, step_ftw=0x{step_ftw:012X}, "
             f"control=0x{control:02X}"
         )
@@ -2286,7 +2376,7 @@ class MainWindow(QMainWindow):
             "000000000000",
             "0000",
             "000000000000",
-            f"{self.pe43711_code.value() & 0x7F:02x}",
+            f"{self.relay_atten_mask.value() & 0x0F:01x}",
             "0",
             "000000000000",
             "000000000001",
@@ -2313,12 +2403,19 @@ class MainWindow(QMainWindow):
                 if stripped.startswith("FAST_APPLY"):
                     self.sweep_point_pending = False
                 quiet_startup = self.vio_startup_quiet and not self.vio_ready
+                is_tcl_echo = stripped.startswith("#")
+                is_real_error = (
+                    not is_tcl_echo
+                    and ("ERROR:" in line or "CRITICAL WARNING:" in line)
+                )
                 should_log = not is_fast_apply_line
-                if quiet_startup and "ERROR:" not in line and "CRITICAL WARNING:" not in line:
+                if quiet_startup and not is_real_error:
+                    should_log = False
+                if quiet_startup and is_tcl_echo:
                     should_log = False
                 if should_log:
                     self.append_log(line.rstrip())
-                if "ERROR:" in line or "CRITICAL WARNING:" in line:
+                if is_real_error:
                     self.status.setText("VIO 返回错误，请查看日志")
                 if "K5VIO_READY" in line:
                     self.vio_ready = True
@@ -2383,24 +2480,43 @@ class MainWindow(QMainWindow):
     def apply_rf_ram_quadrature_if_needed(self, result: WaveformResult, output_mode: str) -> WaveformResult:
         if output_mode != "ram_waveform" or self.output_path_key() != "rf":
             return result
-        _if_hz, main_hz = self.ram_rf_plan_for(output_mode, "rf", self.rf_target_frequency_hz())
+        target_hz = self.rf_target_frequency_hz()
+        _if_hz, main_hz = self.ram_rf_plan_for(output_mode, "rf", target_hz)
         modulation = self.modulation_settings_for_mode(output_mode)
-        if modulation.modulation_type != "sine":
-            result.warnings.append("RF RAM main-NCO shift uses real data for non-sine waveforms")
-            return result
-
         settings = self.waveform_settings()
-        sample_rate_hz = settings.sample_rate_hz()
-        time_s = np.arange(int(settings.sample_count), dtype=np.float64) / max(sample_rate_hz, 1.0)
-        phase = 2.0 * np.pi * float(_if_hz) * time_s
         amplitude_v = float(self.active_output_channel().amplitude_volts())
-
+        ram_cal_vpk = self.rf_ram_calibrated_sample_vpk(target_hz, amplitude_v)
         volts = np.array(result.volts, copy=True)
         if volts.ndim != 2 or volts.shape[1] != 2:
             return result
+        if modulation.modulation_type != "sine":
+            if ram_cal_vpk is not None and amplitude_v > 1e-12:
+                volts[:, 0] *= float(ram_cal_vpk) / amplitude_v
+                result.warnings.append(f"RF RAM amplitude calibration uses {2.0 * ram_cal_vpk:.4g} Vpp samples")
+            result.warnings.append("RF RAM main-NCO shift uses real data for non-sine waveforms")
+            result.volts = volts
+            result.codes = WaveformGenerator._volts_to_codes(volts, settings.dac_full_scale_vpk)
+            return result
+
+        sample_rate_hz = settings.sample_rate_hz()
+        time_s = np.arange(int(settings.sample_count), dtype=np.float64) / max(sample_rate_hz, 1.0)
+        phase = 2.0 * np.pi * float(_if_hz) * time_s
+        if ram_cal_vpk is not None:
+            amplitude_v = ram_cal_vpk
+            result.warnings.append(f"RF RAM amplitude calibration uses {2.0 * amplitude_v:.4g} Vpp samples")
+
         if main_hz <= 0.0 and abs(float(_if_hz)) <= self.predistortion_safe_hz():
-            volts[:, 0] = WaveformGenerator._generate_predistorted_sine(phase, amplitude_v)
-            result.warnings.append("RF RAM direct sine uses H2 predistortion with H2 inside payload Nyquist")
+            predistortion = self.selected_predistortion()
+            if predistortion is None:
+                volts[:, 0] = amplitude_v * np.sin(phase)
+                result.warnings.append("RF RAM direct sine uses clean sine; predistortion disabled")
+            else:
+                ratio, phase_deg = predistortion
+                volts[:, 0] = WaveformGenerator._generate_predistorted_sine(phase, amplitude_v, ratio, phase_deg)
+                result.warnings.append(
+                    "RF RAM direct sine uses H2 predistortion "
+                    f"({self.format_predistortion_label(predistortion)})"
+                )
         else:
             volts[:, 0] = amplitude_v * np.sin(phase)
             if main_hz > 0.0:
@@ -2412,6 +2528,20 @@ class MainWindow(QMainWindow):
         result.volts = volts
         result.codes = codes
         return result
+
+    def rf_ram_calibrated_sample_vpk(self, freq_hz: float, target_vpk: float) -> float | None:
+        if self.rf_ram_calibration is None:
+            return None
+        if self.output_path_key() != "rf" or self.output_mode_key() != "ram_waveform":
+            return None
+        low_hz, high_hz = self.rf_ram_calibration.data.get("frequency_range_hz", [RF_SWEEP_MIN_HZ, RF_SWEEP_MAX_HZ])
+        if freq_hz < float(low_hz) or freq_hz > float(high_hz):
+            return None
+        return self.rf_ram_calibration.interpolate_ram_sample_vpk(
+            freq_hz,
+            target_vpk,
+            self.waveform_settings().dac_full_scale_vpk,
+        )
 
     def preview_result_for_display(self, result: WaveformResult) -> WaveformResult:
         ideal_result = self.ideal_sine_preview_result(result)
@@ -2497,15 +2627,24 @@ class MainWindow(QMainWindow):
         )
         self.update_main_nco_display()
         rf = self.rf_settings()
-        cal_result = self.calculate_rf_calibration()
+        cal_result = self.calculate_rf_calibration() or self.calculate_lf_calibration()
         if cal_result is not None:
+            is_dc = self.output_path_key() == "lf" and self.rf_target_frequency_hz() <= 0.0
+            raw_text = f"{cal_result.raw_vpk:.3g} V DC" if is_dc else f"{cal_result.raw_vpp:.3g} Vpp"
+            expected_text = f"{cal_result.expected_vpk:.3g} V DC" if is_dc else f"{cal_result.expected_vpp:.3g} Vpp"
             self.rf_atten_preview.setText(
+                f"Calibration: raw {raw_text}; "
+                f"relay {cal_result.relay_atten_db:.1f} dB/0x{cal_result.relay_atten_mask:X}; "
+                f"amp 0x{cal_result.amp_code:04X}; expected {expected_text}"
+            )
+            if False:
+                self.rf_atten_preview.setText(
                 f"校准: raw {cal_result.raw_vpp:.3g} Vpp; "
-                f"PE43711 {cal_result.pe43711_atten_db:.2f} dB/0x{cal_result.pe43711_code:02X}; "
+                f"relay {cal_result.relay_atten_db:.1f} dB/0x{cal_result.relay_atten_mask:X}; "
                 f"amp 0x{cal_result.amp_code:04X}; 预计 {cal_result.expected_vpp:.3g} Vpp"
             )
         else:
-            dac_vpk, _auto_code, _auto_atten_db = calculate_rf_output_control(
+            dac_vpk, _auto_mask, _auto_atten_db = calculate_rf_output_control(
                 rf.target_amplitude_vpk,
                 self.full_scale.value(),
             )
@@ -2515,7 +2654,7 @@ class MainWindow(QMainWindow):
                 )
             else:
                 self.rf_atten_preview.setText(
-                    f"PE43711: {rf.pe43711_atten_db:.2f} dB, code 0x{rf.pe43711_code:02X}; "
+                    f"Relay: {rf.relay_atten_db:.1f} dB, mask 0x{rf.relay_atten_mask:X}; "
                     f"DAC0 {dac_vpk:.4g} Vpk"
                 )
         peak = np.max(np.abs(display_result.volts), axis=0)
@@ -2528,6 +2667,8 @@ class MainWindow(QMainWindow):
         )
         if result.warnings:
             text += " | " + "; ".join(result.warnings)
+        if self.rf_target_amplitude_vpp() < MIN_CALIBRATED_AMPLITUDE_VPP:
+            text += " | Output below 5 mVpp calibration floor"
         self.status.setText(text)
 
     def calculate_rf_calibration(self):
@@ -2550,6 +2691,7 @@ class MainWindow(QMainWindow):
             self.output_path_key(),
             channel.frequency_hz(),
             self.rf_settings().target_amplitude_vpk,
+            self.output_mode_key(),
         )
 
     def calculate_rf_calibration_at(
@@ -2559,20 +2701,44 @@ class MainWindow(QMainWindow):
         target_vpk: float,
         output_mode: str | None = None,
     ):
-        if self.rf_calibration is None or path_key != "rf":
+        if output_mode == "ram_waveform":
+            rf_calibration = self.rf_ram_calibration
+        elif output_mode == "jesd_tone":
+            rf_calibration = self.rf_jesd_calibration
+        else:
+            rf_calibration = self.rf_calibration
+        if rf_calibration is None or path_key != "rf":
             return None
-        low_hz, high_hz = self.rf_calibration.data.get("frequency_range_hz", [RF_SWEEP_MIN_HZ, 200_000_000])
+        low_hz, high_hz = rf_calibration.data.get("frequency_range_hz", [RF_SWEEP_MIN_HZ, 200_000_000])
         if freq_hz < float(low_hz) or freq_hz > float(high_hz):
             return None
-        return self.rf_calibration.calculate(freq_hz, target_vpk, output_mode)
+        relay_mask_override = None if (
+            output_mode == "ram_waveform" or self.relay_auto_calibration.isChecked()
+        ) else self.relay_atten_mask.value()
+        return rf_calibration.calculate(
+            freq_hz,
+            target_vpk,
+            output_mode,
+            relay_mask_override=relay_mask_override,
+        )
 
-    def calculate_lf_calibration_at(self, path_key: str, freq_hz: float, target_vpk: float):
-        if self.lf_calibration is None or path_key != "lf":
+    def calculate_lf_calibration_at(
+        self,
+        path_key: str,
+        freq_hz: float,
+        target_vpk: float,
+        output_mode: str | None = None,
+    ):
+        lf_calibration = self.lf_jesd_calibration if output_mode == "jesd_tone" else self.lf_calibration
+        if lf_calibration is None or path_key != "lf":
             return None
-        low_hz, high_hz = self.lf_calibration.data.get("frequency_range_hz", [LF_SWEEP_MIN_HZ, LF_SWEEP_MAX_HZ])
-        if freq_hz < float(low_hz) or freq_hz > float(high_hz):
+        _low_hz, high_hz = lf_calibration.data.get("frequency_range_hz", [LF_SWEEP_MIN_HZ, LF_SWEEP_MAX_HZ])
+        if freq_hz > float(high_hz):
             return None
-        return self.lf_calibration.calculate(freq_hz, target_vpk)
+        if output_mode == "jesd_tone":
+            target_vpk = min(float(target_vpk), LF_JESD_MAX_CALIBRATED_TARGET_VPK)
+        relay_mask_override = None if self.relay_auto_calibration.isChecked() else self.relay_atten_mask.value()
+        return lf_calibration.calculate(freq_hz, target_vpk, relay_mask_override=relay_mask_override)
 
     def build_vio_nco_config(self, path_key: str, frequency_hz: float, target_vpk: float) -> dict:
         path_key = "lf" if path_key == "lf" else "rf"
@@ -2587,8 +2753,8 @@ class MainWindow(QMainWindow):
         rf = RfSettings(
             output_path=path_key,
             target_amplitude_vpk=target_vpk,
-            pe43711_atten_db=self.pe43711_code.value() * PE43711_STEP_DB,
-            pe43711_code=self.pe43711_code.value(),
+            relay_atten_db=relay_attenuation_db_from_mask(self.relay_atten_mask.value()),
+            relay_atten_mask=self.relay_atten_mask.value(),
         )
         main_nco_hz = self.rf_main_nco_hz_for(path_key, frequency_hz)
         config = build_config_payload(
@@ -2605,12 +2771,22 @@ class MainWindow(QMainWindow):
         rf_cal_result = self.calculate_rf_calibration_at(path_key, frequency_hz, target_vpk)
         if rf_cal_result is not None:
             config["rf"]["calibration"] = rf_cal_result.to_payload()
-            config["rf"]["pe43711_code"] = rf_cal_result.pe43711_code
-            config["rf"]["pe43711_atten_db"] = rf_cal_result.pe43711_atten_db
-        lf_cal_result = self.calculate_lf_calibration_at(path_key, frequency_hz, target_vpk)
+            config["rf"]["relay_atten_mask"] = rf_cal_result.relay_atten_mask
+            config["rf"]["relay_atten_db"] = rf_cal_result.relay_atten_db
+        lf_cal_result = self.calculate_lf_calibration_at(path_key, frequency_hz, target_vpk, "nco_only")
         if lf_cal_result is not None:
             config["rf"]["lf_calibration"] = lf_cal_result.to_payload()
+            config["rf"]["relay_atten_mask"] = lf_cal_result.relay_atten_mask
+            config["rf"]["relay_atten_db"] = lf_cal_result.relay_atten_db
         return config
+
+    def build_vio_panel_nco_command(self, fast: bool = False):
+        return self.build_vio_nco_command(
+            self.output_path_key(),
+            self.rf_target_frequency_hz(),
+            self.rf_settings().target_amplitude_vpk,
+            fast=fast,
+        )
 
     def build_vio_nco_command(
         self,
@@ -2623,7 +2799,7 @@ class MainWindow(QMainWindow):
         payload = build_dac_dds_config_payload(config)
         ftws = [int.from_bytes(payload[12 + index * 6 : 18 + index * 6], "little") for index in range(4)]
         scales = [int.from_bytes(payload[36 + index * 2 : 38 + index * 2], "little") for index in range(4)]
-        pe_code = int(payload[48]) & 0x7F
+        relay_mask = int(payload[48]) & 0x0F
         path_sel = int(payload[49]) & 0x01
         command_name = "ku5p_vio_apply_fast" if fast else "ku5p_vio_apply"
         command = " ".join([
@@ -2632,10 +2808,10 @@ class MainWindow(QMainWindow):
             f"{ftws[0]:012x}",
             f"{scales[2]:04x}",
             f"{ftws[2]:012x}",
-            f"{pe_code:02x}",
+            f"{relay_mask:01x}",
             str(path_sel),
         ])
-        return command, config, ftws, scales, pe_code, path_sel
+        return command, config, ftws, scales, relay_mask, path_sel
 
     def build_config_for_mode(self, result: WaveformResult, output_mode: str) -> dict:
         target_freq_hz = self.rf_target_frequency_hz()
@@ -2653,6 +2829,13 @@ class MainWindow(QMainWindow):
             config["channels"][0]["frequency_hz"] = jesd_if_hz
             config["channels"][0]["frequency"] = jesd_if_hz
             config["channels"][0]["frequency_unit"] = "Hz"
+        if output_mode == "jesd_tone" and self.output_path_key() == "lf" and config.get("channels"):
+            config["channels"][0]["amplitude_vpk"] = min(
+                float(config["channels"][0].get("amplitude_vpk", 0.0)),
+                LF_JESD_SAFE_DRIVE_VPK,
+            )
+            config["channels"][0]["amplitude"] = config["channels"][0]["amplitude_vpk"]
+            config["channels"][0]["amplitude_unit"] = "V"
         ram_if_hz, ram_main_nco_hz = self.ram_rf_plan_for(output_mode, self.output_path_key(), target_freq_hz)
         if output_mode == "ram_waveform" and config.get("channels"):
             config["channels"][0]["frequency_hz"] = ram_if_hz
@@ -2664,6 +2847,22 @@ class MainWindow(QMainWindow):
         config["rf"]["ram_if_hz"] = ram_if_hz
         config["rf"]["ram_main_nco_hz"] = ram_main_nco_hz
         config["rf"]["ram_main_nco_threshold_hz"] = self.payload_nyquist_hz()
+        modulation = self.modulation_settings_for_mode(output_mode)
+        predistortion_active = (
+            output_mode == "ram_waveform"
+            and self.output_path_key() == "rf"
+            and modulation.modulation_type == "sine"
+            and abs(float(ram_main_nco_hz)) <= 1.0
+            and abs(float(ram_if_hz)) <= self.predistortion_safe_hz()
+            and not str(result.source).startswith("BIN ")
+        )
+        predistortion = self.selected_predistortion() if predistortion_active else None
+        config["rf"]["ram_predistortion"] = {
+            "enabled": predistortion is not None,
+            "label": self.format_predistortion_label(predistortion),
+            "h2_ratio": predistortion[0] if predistortion is not None else 0.0,
+            "h2_phase_deg": predistortion[1] if predistortion is not None else 0.0,
+        }
         config["rf"]["jesd_if_hz"] = jesd_if_hz
         config["rf"]["jesd_main_nco_hz"] = ram_main_nco_hz if output_mode == "ram_waveform" else jesd_main_nco_hz
         config["rf"]["jesd_main_nco_threshold_hz"] = self.payload_nyquist_hz()
@@ -2672,11 +2871,13 @@ class MainWindow(QMainWindow):
         cal_result = self.calculate_rf_calibration()
         if cal_result is not None:
             config["rf"]["calibration"] = cal_result.to_payload()
-            config["rf"]["pe43711_code"] = cal_result.pe43711_code
-            config["rf"]["pe43711_atten_db"] = cal_result.pe43711_atten_db
+            config["rf"]["relay_atten_mask"] = cal_result.relay_atten_mask
+            config["rf"]["relay_atten_db"] = cal_result.relay_atten_db
         lf_cal_result = self.calculate_lf_calibration()
         if lf_cal_result is not None:
             config["rf"]["lf_calibration"] = lf_cal_result.to_payload()
+            config["rf"]["relay_atten_mask"] = lf_cal_result.relay_atten_mask
+            config["rf"]["relay_atten_db"] = lf_cal_result.relay_atten_db
         return config
 
     def build_config(self, result: WaveformResult) -> dict:
@@ -2707,7 +2908,7 @@ class MainWindow(QMainWindow):
                 f"{frames} frame(s), mode={mode_label}, "
                 f"path={rf.get('output_path_label')}, "
                 f"target={float(rf.get('target_amplitude_vpk', 0.0)):.4g} Vpk, "
-                f"PE43711=0x{int(rf.get('pe43711_code', 127)):02X}"
+                f"relay=0x{int(rf.get('relay_atten_mask', 0)):02X}"
             )
         except Exception as exc:
             self.append_log(f"DDS 配置发送失败: {exc}")
@@ -2722,6 +2923,8 @@ class MainWindow(QMainWindow):
         sample_rate_hz = float(waveform.get("sample_rate_hz", self.waveform_settings().sample_rate_hz()) or 0.0)
         ram_hz = float(rf.get("ram_if_hz", target_hz) or 0.0)
         shift_hz = float(rf.get("ram_main_nco_hz", 0.0) or 0.0)
+        predistortion = rf.get("ram_predistortion", {})
+        predistortion_label = str(predistortion.get("label", "关闭"))
         if abs(shift_hz) > 1.0:
             frequency_plan = (
                 f"RAM波形 {self.format_frequency_hz(ram_hz)} + "
@@ -2734,7 +2937,7 @@ class MainWindow(QMainWindow):
         warning_suffix = f"，提示={'；'.join(result.warnings)}" if result.warnings else ""
         return (
             "任意波形输出成功：配置信息："
-            f"通路={rf.get('output_path_label', self.output_path.currentText())}，"
+            f"通路={rf.get('output_path_label')}，"
             f"目标频率={self.format_frequency_hz(target_hz)}，"
             f"目标幅度={target_vpp:.4g} Vpp，"
             f"调制={modulation.get('modulation_label', self.modulation_type.currentText())}，"
@@ -2742,6 +2945,7 @@ class MainWindow(QMainWindow):
             f"采样率={self.format_frequency_hz(sample_rate_hz).replace('Hz', 'SPS')}，"
             f"UDP帧={frames}，"
             f"数据源={result.source}，"
+            f"预失真={predistortion_label}，"
             f"频率规划={frequency_plan}{warning_suffix}"
         )
 
@@ -2750,6 +2954,9 @@ class MainWindow(QMainWindow):
             output_mode = self.output_mode_key()
             if output_mode == "nco_only":
                 self.send_vio_nco_config(quiet_success=True)
+                return
+            if output_mode == "jesd_tone":
+                self.send_config()
                 return
             if output_mode != "ram_waveform":
                 self.append_log("发送波形仅在任意波形输出模式下可用")
@@ -2840,56 +3047,6 @@ class MainWindow(QMainWindow):
         self.append_log(f"BIN loaded: {path} ({sample_count} sample pairs)")
         self.status.setText(f"BIN loaded: {path.name}")
 
-    def generate_text_binary(self) -> None:
-        try:
-            out_dir = Path(__file__).resolve().parents[1] / "generated_waveforms"
-            out_dir.mkdir(parents=True, exist_ok=True)
-            path = out_dir / "hanzi_zhong_time_ch0_i16.bin"
-            sample_count = int(self.sample_count.value())
-            sample_count = max(1024, min(sample_count, MAX_WAVEFORM_SAMPLES))
-            codes = self.make_text_waveform_codes(sample_count, 0.82)
-            codes.tofile(path)
-            self.load_binary_path(path)
-            self.append_log(f"Hanzi waveform generated: {path}")
-        except Exception as exc:
-            self.append_log(f"汉字信号生成失败: {exc}")
-            self.status.setText("Text waveform failed")
-
-    @staticmethod
-    def make_text_waveform_codes(sample_count: int, amplitude: float) -> np.ndarray:
-        glyph = np.asarray([
-            [0, 0, 1, 0, 0],
-            [0, 0, 1, 0, 0],
-            [1, 1, 1, 1, 1],
-            [1, 0, 1, 0, 1],
-            [1, 1, 1, 1, 1],
-            [0, 0, 1, 0, 0],
-            [0, 0, 1, 0, 0],
-        ], dtype=np.float64)
-        image = np.kron(glyph, np.ones((5, 5), dtype=np.float64))
-        image = image[::-1, :]
-        rows, cols = image.shape
-        segments: list[float] = []
-        for row in range(rows):
-            row_values = image[row, :]
-            if row % 2:
-                row_values = row_values[::-1]
-            segments.extend(row_values.tolist())
-            segments.extend([0.0, 0.0])
-        base = np.asarray(segments, dtype=np.float64)
-        if base.size == 0:
-            base = np.zeros(1, dtype=np.float64)
-        x_old = np.linspace(0.0, 1.0, base.size, endpoint=False)
-        x_new = np.linspace(0.0, 1.0, sample_count, endpoint=False)
-        y = np.interp(x_new, x_old, base, period=1.0)
-        window = np.hanning(17)
-        window = window / np.sum(window)
-        y = np.convolve(y, window, mode="same")
-        y = (2.0 * y - 1.0) * float(amplitude)
-        ch0 = np.rint(np.clip(y, -1.0, 1.0) * 32767.0).astype("<i2")
-        ch1 = np.zeros_like(ch0)
-        return np.column_stack((ch0, ch1)).astype("<i2", copy=False)
-
     def save_binary(self) -> None:
         try:
             result = self.last_result or self.generate_waveform(allow_matlab=False)
@@ -2954,6 +3111,23 @@ def apply_style(app: QApplication, font_size: int = 13) -> None:
             padding: 0 6px;
             color: #8fc7ff;
             font-weight: 600;
+        }}
+        QGroupBox#networkGroup {{
+            padding-top: 10px;
+        }}
+        QGroupBox#networkGroup::title,
+        QGroupBox#networkGroup QLabel,
+        QGroupBox#networkGroup QLineEdit,
+        QGroupBox#networkGroup QSpinBox,
+        QGroupBox#networkGroup QPushButton {{
+            font-size: 12px;
+        }}
+        QGroupBox#networkGroup QLineEdit,
+        QGroupBox#networkGroup QSpinBox {{
+            padding: 4px 6px;
+        }}
+        QGroupBox#networkGroup QPushButton {{
+            padding: 5px 9px;
         }}
         QLabel#sectionTitle {{
             font-size: {title_size}px;

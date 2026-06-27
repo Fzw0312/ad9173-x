@@ -21,7 +21,7 @@ DAC_DDS_CONFIG_SUFFIX = struct.Struct("<HHHHIBBH")
 SAMPLE_FORMAT_INT16_IQ2 = 1
 DAC_DDS_SAMPLE_RATE_HZ = 983_040_000
 AD9173_NOMINAL_NCO_HZ = 1_474_560_000.0
-AD9173_NCO_CALIBRATION_PPM = 0.6998476000941167
+AD9173_NCO_CALIBRATION_PPM = 0.0
 AD9173_NCO_HZ = AD9173_NOMINAL_NCO_HZ * (1.0 + AD9173_NCO_CALIBRATION_PPM * 1e-6)
 # Main NCO FTW is referenced to the DAC main datapath rate, not the
 # 983.04 MSPS JESD payload rate. This board runs the main datapath at 12x.
@@ -29,8 +29,9 @@ AD9173_MAIN_NCO_HZ = DAC_DDS_SAMPLE_RATE_HZ * 12.0
 AD9173_MAIN_NCO_SIGN = -1.0
 AD9173_NCO_MAX_AMP = 0x50FF
 HMC788_GAIN_DB = 14.0
-PE43711_MAX_ATTEN_DB = 31.75
-PE43711_STEP_DB = 0.25
+RELAY_ATTENUATOR_STAGES_DB = (5.0, 10.0, 15.0, 20.0)
+RELAY_ATTENUATOR_MAX_DB = sum(RELAY_ATTENUATOR_STAGES_DB)
+RELAY_ATTENUATOR_STEP_DB = 5.0
 CONFIG_FLAG_RESET_PHASE = 0x01
 CONFIG_FLAG_NCO_ONLY = 0x02
 CONFIG_FLAG_RAM_WAVEFORM = 0x04
@@ -63,17 +64,36 @@ def json_payload(payload: dict) -> bytes:
     return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
+def relay_attenuation_db_from_mask(mask: int) -> float:
+    mask = int(mask) & 0x0F
+    return sum(stage_db for bit, stage_db in enumerate(RELAY_ATTENUATOR_STAGES_DB) if mask & (1 << bit))
+
+
+def relay_mask_for_attenuation_db(atten_db: float) -> tuple[int, float]:
+    target_db = max(0.0, min(float(atten_db), RELAY_ATTENUATOR_MAX_DB))
+    best_mask = 0
+    best_db = 0.0
+    best_error = float("inf")
+    for mask in range(16):
+        candidate_db = relay_attenuation_db_from_mask(mask)
+        error = abs(candidate_db - target_db)
+        if error < best_error or (math.isclose(error, best_error) and candidate_db <= target_db):
+            best_mask = mask
+            best_db = candidate_db
+            best_error = error
+    return best_mask, best_db
+
+
 def calculate_rf_output_control(target_vpk: float, full_scale_vpk: float) -> tuple[float, int, float]:
-    target_vpk = max(0.01, min(float(target_vpk), 3.0))
+    target_vpk = max(0.0005, min(float(target_vpk), 3.0))
     full_scale_vpk = max(float(full_scale_vpk), 0.001)
     gain_linear = 10.0 ** (HMC788_GAIN_DB / 20.0)
-    max_dac_for_target = target_vpk * (10.0 ** (PE43711_MAX_ATTEN_DB / 20.0)) / gain_linear
+    max_dac_for_target = target_vpk * (10.0 ** (RELAY_ATTENUATOR_MAX_DB / 20.0)) / gain_linear
     dac_vpk = max(0.0, min(full_scale_vpk, max_dac_for_target))
     pre_atten_vpk = max(dac_vpk * gain_linear, 1e-12)
-    atten_db = max(0.0, min(PE43711_MAX_ATTEN_DB, 20.0 * math.log10(pre_atten_vpk / target_vpk)))
-    code = max(0, min(127, int(round(atten_db / PE43711_STEP_DB))))
-    rounded_atten_db = code * PE43711_STEP_DB
-    return dac_vpk, code, rounded_atten_db
+    atten_db = max(0.0, min(RELAY_ATTENUATOR_MAX_DB, 20.0 * math.log10(pre_atten_vpk / target_vpk)))
+    mask, rounded_atten_db = relay_mask_for_attenuation_db(atten_db)
+    return dac_vpk, mask, rounded_atten_db
 
 
 def build_dac_dds_config_payload(config: dict, reset_phase: bool = True) -> bytes:
@@ -93,21 +113,24 @@ def build_dac_dds_config_payload(config: dict, reset_phase: bool = True) -> byte
     if full_scale_vpk <= 0.0:
         full_scale_vpk = 1.0
     output_path = str(rf.get("output_path", "rf"))
-    output_path_sel = 1 if output_path == "lf" else 0
+    output_path_sel = 0 if output_path == "lf" else 1
     target_rf_vpk = float(rf.get("target_amplitude_vpk", 1.0))
     jesd_main_nco_hz = 0.0 if nco_only else float(rf.get("jesd_main_nco_hz", 0.0))
     jesd_main_nco_ftw = int(round((AD9173_MAIN_NCO_SIGN * jesd_main_nco_hz / AD9173_MAIN_NCO_HZ) * (1 << 48))) & 0xFFFFFFFFFFFF
-    rf_dac_vpk, auto_rf_atten_code, _rf_atten_db = calculate_rf_output_control(target_rf_vpk, full_scale_vpk)
+    rf_dac_vpk, auto_rf_atten_mask, _rf_atten_db = calculate_rf_output_control(target_rf_vpk, full_scale_vpk)
+    jesd_scale_max = 0x7FFF
     if rf_cal.get("enabled"):
-        rf_atten_code = max(0, min(127, int(rf_cal.get("pe43711_code", auto_rf_atten_code))))
-        rf_cal_amp_code = max(0, min(AD9173_NCO_MAX_AMP, int(rf_cal.get("amp_code", 0))))
+        rf_atten_mask = max(0, min(15, int(rf_cal.get("relay_atten_mask", auto_rf_atten_mask))))
+        rf_cal_amp_code_max = AD9173_NCO_MAX_AMP if nco_only else jesd_scale_max
+        rf_cal_amp_code = max(0, min(rf_cal_amp_code_max, int(rf_cal.get("amp_code", 0))))
     else:
-        rf_atten_code = max(0, min(127, int(rf.get("pe43711_code", auto_rf_atten_code))))
+        rf_atten_mask = max(0, min(15, int(rf.get("relay_atten_mask", auto_rf_atten_mask))))
         rf_cal_amp_code = 0
-    lf_cal_amp_code = max(0, min(AD9173_NCO_MAX_AMP, int(lf_cal.get("amp_code", 0)))) if lf_cal.get("enabled") else 0
+    lf_cal_amp_code_max = AD9173_NCO_MAX_AMP if nco_only else jesd_scale_max
+    lf_cal_amp_code = max(0, min(lf_cal_amp_code_max, int(lf_cal.get("amp_code", 0)))) if lf_cal.get("enabled") else 0
 
-    if output_path_sel == 1:
-        gui_to_dac_map = [None, None, 0, None]
+    if output_path == "lf":
+        gui_to_dac_map = [None, 0, None, None] if output_mode == "ram_waveform" else [None, None, 0, None]
     else:
         gui_to_dac_map = [0, None, 1, None]
 
@@ -122,13 +145,13 @@ def build_dac_dds_config_payload(config: dict, reset_phase: bool = True) -> byte
             channel_mask |= (1 << index)
         frequency_hz = float(channel.get("frequency_hz", 0.0)) if enabled else 0.0
         amplitude_vpk = abs(float(channel.get("amplitude_vpk", 0.0))) if enabled else 0.0
-        if output_path_sel == 0 and index == 0 and enabled and not rf_cal.get("enabled"):
+        if output_path == "rf" and index == 0 and enabled and not rf_cal.get("enabled"):
             amplitude_vpk = rf_dac_vpk
         ftw = int(round((frequency_hz / ftw_rate_hz) * (1 << 48))) & 0xFFFFFFFFFFFF
         max_scale = AD9173_NCO_MAX_AMP if nco_only else 0x7FFF
-        if output_path_sel == 0 and index == 0 and enabled and rf_cal.get("enabled"):
+        if output_path == "rf" and index == 0 and enabled and rf_cal.get("enabled"):
             scale = rf_cal_amp_code
-        elif output_path_sel == 1 and index == 2 and enabled and lf_cal.get("enabled"):
+        elif output_path == "lf" and index in (1, 2) and enabled and lf_cal.get("enabled"):
             scale = lf_cal_amp_code
         else:
             scale = int(round(min(amplitude_vpk / full_scale_vpk, 1.0) * max_scale))
@@ -154,7 +177,7 @@ def build_dac_dds_config_payload(config: dict, reset_phase: bool = True) -> byte
         scales[2],
         scales[3],
         jesd_main_nco_ftw & 0xFFFFFFFF,
-        rf_atten_code,
+        rf_atten_mask,
         output_path_sel,
         (jesd_main_nco_ftw >> 32) & 0xFFFF,
     )

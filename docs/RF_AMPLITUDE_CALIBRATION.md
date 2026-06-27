@@ -1,350 +1,184 @@
 # RF Amplitude Calibration Plan
 
-This document summarizes the RF amplitude calibration strategy for the
-AD9173 KU5P HostApp flow. It is written as an implementation reference for
-future Codex work.
+This document describes the current RF amplitude calibration flow for the
+AD9173 KU5P HostApp after the hardware change to a shared post-switch relay
+attenuator.
 
 ## Scope
 
-- Frequency range: 10 MHz to 200 MHz.
-- RF output path: DAC0 -> HMC788 gain stage -> PE43711 digital attenuator -> RF output.
-- Low-frequency output path: DAC1, selected separately by the output switch.
-- Output switch pin: B9.
-  - `0`: RF path selected.
-  - `1`: low-frequency path selected.
-- Target RF amplitude range: 0.01 Vpk to 3.0 Vpk.
-- Main amplitude control device: PE43711.
-- Fine and range-extension control: DAC digital scale.
+- First calibration range: 10 MHz to 200 MHz RF path.
+- First target amplitude range: 1 Vpp to 3 Vpp.
+- Oscilloscope measurement channel: CH2.
+- RF output path: DAC0 RF chain selected by the RF/LF output switch.
+- LF and RF now use the same relay attenuation after path switching.
+- The old RF-only PE43711 assumption is obsolete for new tables.
 
 ## Hardware Model
 
-The RF amplitude model is:
+The active RF model for this calibration is:
 
 ```text
 DAC0 digital scale
-  -> AD9173 DAC0 analog output
-  -> HMC788 fixed gain, nominal +14 dB
-  -> PE43711 attenuation, 0.25 dB/step, 0..31.75 dB
-  -> RF output
+  -> AD9173 RF tone path
+  -> RF gain/output conditioning
+  -> RF/LF output switch
+  -> shared 4-bit relay attenuator
+  -> output connector
 ```
 
-PE43711 code mapping:
+The relay attenuation mask is sent in the runtime payload:
 
 ```text
-atten_db = code * 0.25
-code = round(atten_db / 0.25)
-valid code range = 0..127
-```
-
-The current FPGA protocol sends this code in the K5DC binary payload:
-
-```text
-0x30: rf_atten_code
+0x30: relay_atten_mask
 0x31: output_path_sel
 ```
 
-## Why DAC Scale Is Still Needed
-
-The requested amplitude range is about 49.54 dB:
+Current mapping:
 
 ```text
-20 * log10(3.0 / 0.01) = 49.54 dB
+bit0/D9  =  5 dB
+bit1/C11 = 10 dB
+bit2/E11 = 15 dB
+bit3/D11 = 20 dB
 ```
 
-PE43711 provides only 31.75 dB. Therefore:
+`relay_atten_mask` supports 0 dB to 50 dB in 5 dB-combinable steps. RF path
+selection uses `output_path_sel = 1`; LF path selection uses
+`output_path_sel = 0`.
 
-- PE43711 should do the main attenuation.
-- DAC scale must cover the remaining range at very low target amplitudes.
-- DAC scale should also correct PE43711 step quantization and frequency
-  response variation.
+## Calibration Table
 
-Avoid driving DAC scale unnecessarily low because it degrades SNR.
+Use a fresh RF table under:
 
-## Calibration Data
+```text
+HostApp/calibration/ch1_rf_unified_attenuator_<timestamp>/rf_cal_10m_200m_ch1_runtime.json
+```
 
-Use a frequency calibration table rather than one global gain value.
+The `ch1_rf` part of the directory/file name is retained for HostApp loader
+compatibility. The table metadata records the actual measurement channel:
 
-Recommended initial measurement frequencies:
+```json
+{
+  "source": "rf_unified_attenuator_scope_sweep",
+  "path": "rf_dac0_after_switch_unified_relay_attenuator",
+  "measurement_channel": "CHAN2",
+  "output_path": "rf",
+  "output_path_sel": 1
+}
+```
+
+The runtime table stores:
+
+- `points`: raw RF frequency response at a preferred DAC/NCO amplitude and
+  bootstrap relay mask.
+- `amplitude_correction_model`: closed-loop correction factors over frequency
+  and target Vpp.
+- `relay_attenuator_*`: the shared relay attenuator description.
+
+## Recommended Sweep
+
+Default raw frequency points:
 
 ```text
 10, 15, 20, 30, 40, 50, 70, 100, 130, 160, 180, 200 MHz
 ```
 
-If the response is smooth, this can later be compressed into segments:
+Default closed-loop target amplitudes:
 
 ```text
-10-30 MHz
-30-60 MHz
-60-100 MHz
-100-150 MHz
-150-200 MHz
+1.0, 1.5, 2.0, 2.5, 3.0 Vpp
 ```
 
-Preferred storage format:
+The 1 Vpp to 3 Vpp range is intentionally narrower than the old table. It
+matches the immediate request and avoids spending time on low-level SNR
+behavior before the new shared attenuator path is characterized.
 
-```json
-{
-  "version": 1,
-  "path": "rf_dac0_hmc788_pe43711",
-  "amplitude_unit": "Vpk",
-  "preferred_dac_scale_ratio": 0.8,
-  "points": [
-    {"freq_hz": 10000000, "raw_vpk": 4.90},
-    {"freq_hz": 20000000, "raw_vpk": 4.86},
-    {"freq_hz": 50000000, "raw_vpk": 4.70},
-    {"freq_hz": 100000000, "raw_vpk": 4.35},
-    {"freq_hz": 150000000, "raw_vpk": 4.05},
-    {"freq_hz": 200000000, "raw_vpk": 3.82}
-  ]
-}
+## Tool
+
+Use:
+
+```powershell
+python .\HostApp\tools\calibrate_rf_unified_attenuator.py --scope-ip <scope-ip>
 ```
 
-`raw_vpk` means the measured RF output amplitude at:
+Useful dry run:
+
+```powershell
+python .\HostApp\tools\calibrate_rf_unified_attenuator.py --dry-run
+```
+
+Important defaults:
 
 ```text
-output_path_sel = 0
-PE43711 code = 0
-DAC0 scale = preferred_dac_scale_ratio
+--channel CHAN2
+--freq-mhz 10 ... 200
+--target-vpp 1.0 ... 3.0
+--bootstrap-amp-ratio 1.0
+--bootstrap-relay-mask 0
 ```
 
-Store the table in:
+To capture only the raw response before closed-loop correction:
 
-```text
-HostApp/calibration/rf_cal_10m_200m.json
+```powershell
+python .\HostApp\tools\calibrate_rf_unified_attenuator.py --raw-only
 ```
 
 ## Measurement Procedure
 
-1. Select RF path.
-
-```text
-B9/output_path_sel = 0
-```
-
-2. Set PE43711 to minimum attenuation.
-
-```text
-pe43711_code = 0
-atten_db = 0
-```
-
-3. Set DAC0 to a safe high scale.
-
-Recommended start:
-
-```text
-dac_scale_ratio = 0.8
-```
-
-Do not use full scale until compression has been checked.
-
-4. Generate a single tone at each calibration frequency.
-
-Use the same output mode intended for RF operation. If RF operation will use
-JESD single-tone, calibrate with JESD single-tone.
-
-5. Measure output amplitude in Vpk.
-
-Use a consistent setup:
-
-- Same cable.
-- Same load.
-- Same oscilloscope/power meter settings.
-- Same input impedance.
-- Same probe/attenuator chain.
-
-6. Check compression.
-
-At several frequencies, sweep DAC scale:
-
-```text
-0.4, 0.6, 0.8, 1.0
-```
-
-If output is not linear near 1.0, reduce `preferred_dac_scale_ratio`.
-
-7. Save the measured table.
-
-Use dB-domain interpolation at runtime:
-
-```text
-raw_dbv = interp(freq_hz, 20 * log10(raw_vpk))
-raw_vpk = 10 ** (raw_dbv / 20)
-```
+1. Connect the RF output to oscilloscope CH2 with the final intended cable,
+   load, and any external protection/attenuation in place.
+2. Select RF path with `output_path_sel = 1`.
+3. Start with max AD9173/NCO amplitude and relay mask `0x0` unless the raw
+   output would over-range the oscilloscope or compress the analog chain.
+4. Run the raw sweep. The tool captures waveform CSV files and computes raw
+   Vpk/Vpp per frequency.
+5. Run closed-loop correction over 1 Vpp to 3 Vpp. The tool measures CH2
+   `PKPK` repeatedly and writes correction factors into the runtime JSON.
+6. The newest matching runtime JSON is loaded by `RfCalibrationTable.load_latest`.
 
 ## Runtime Algorithm
 
-Inputs:
+For each RF target:
+
+1. Interpolate raw RF Vpk over frequency in dB domain.
+2. Interpolate the amplitude correction factor over frequency and target Vpp.
+3. Choose the largest shared relay attenuation that does not exceed the
+   required attenuation.
+4. Compute the AD9173 NCO amplitude code from raw Vpk, target Vpk, relay dB,
+   and correction factor. This keeps the source amplitude as high as possible
+   and uses source-amplitude reduction only for the residual below the selected
+   relay step.
+5. Clamp to `nco_max_amp_code`.
+6. Send RF path select and relay mask in the runtime payload.
+
+## Validation
+
+After the calibration table is created, validate at points not identical to
+the calibration grid:
 
 ```text
-freq_hz
-target_vpk
-calibration table
+12, 25, 60, 90, 120, 175, 200 MHz
+1.0, 1.8, 2.4, 3.0 Vpp
 ```
 
-Constants:
+Initial acceptance target:
 
 ```text
-PE_MAX_ATTEN_DB = 31.75
-PE_STEP_DB = 0.25
-TARGET_MIN_VPK = 0.01
-TARGET_MAX_VPK = 3.0
+<= +/-0.5 dB across 10-200 MHz and 1-3 Vpp
 ```
 
-Steps:
-
-1. Clamp target amplitude.
+Refined target after another closed-loop pass:
 
 ```text
-target_vpk = clamp(target_vpk, 0.01, 3.0)
+<= +/-0.2 dB where the analog chain is not compressed
 ```
 
-2. Interpolate calibrated raw amplitude.
+## Notes
 
-```text
-raw_vpk = interpolate_raw_vpk(freq_hz)
-```
-
-3. Calculate required attenuation.
-
-```text
-need_atten_db = 20 * log10(raw_vpk / target_vpk)
-```
-
-4. Assign most attenuation to PE43711.
-
-```text
-pe_atten_db = clamp(round(need_atten_db / 0.25) * 0.25, 0, 31.75)
-pe_code = round(pe_atten_db / 0.25)
-```
-
-5. Use DAC scale for the remaining correction.
-
-```text
-dac_scale_ratio = target_vpk * 10 ** (pe_atten_db / 20) / raw_vpk
-```
-
-6. Clamp DAC scale.
-
-```text
-dac_scale_ratio = clamp(dac_scale_ratio, DAC_MIN_SCALE, DAC_MAX_SCALE)
-```
-
-Recommended:
-
-```text
-DAC_MAX_SCALE = preferred_dac_scale_ratio
-DAC_MIN_SCALE = value corresponding to acceptable SNR
-```
-
-If `dac_scale_ratio` is below the minimum, allow it only with a GUI warning
-that low-amplitude SNR may be degraded.
-
-7. Convert to FPGA scale field.
-
-For JESD single-tone mode:
-
-```text
-scale_code = round(dac_scale_ratio * 0x7FFF)
-```
-
-For AD9173 NCO-only mode:
-
-```text
-scale_code = round(dac_scale_ratio * AD9173_NCO_MAX_AMP)
-```
-
-8. Send K5DC.
-
-```text
-cfg_scale0 = scale_code
-rf_atten_code = pe_code
-output_path_sel = 0
-```
-
-## HostApp Implementation Notes
-
-Add RF calibration support around the existing `calculate_rf_output_control()`
-logic.
-
-Recommended behavior:
-
-- If calibration file exists and RF path is selected:
-  - Use frequency table interpolation.
-  - Calculate PE43711 code and DAC scale from calibrated `raw_vpk`.
-- If no calibration file exists:
-  - Fall back to the current nominal HMC788 +14 dB model.
-- Show these values in the GUI:
-  - Target amplitude.
-  - Frequency.
-  - Interpolated raw amplitude.
-  - PE43711 attenuation dB/code.
-  - DAC scale ratio/code.
-  - Expected output amplitude.
-  - Warning if DAC scale is very low or target amplitude exceeds safe range.
-
-Recommended GUI fields:
-
-```text
-RF calibration enabled
-Calibration file path
-Interpolated raw Vpk
-PE43711 code/dB
-DAC scale ratio/code
-Expected RF output Vpk
-```
-
-## Error Targets
-
-Initial target:
-
-```text
-<= +/-0.5 dB over 10-200 MHz
-```
-
-Refined target after iterative calibration:
-
-```text
-<= +/-0.2 dB over 10-200 MHz
-```
-
-Validation amplitudes per segment:
-
-```text
-0.03, 0.1, 0.5, 1.0, 2.0, 3.0 Vpk
-```
-
-Validation frequencies:
-
-```text
-10, 20, 50, 100, 150, 200 MHz
-```
-
-Add intermediate points if error is not monotonic.
-
-## Important Risks
-
-- 0.01 Vpk cannot be achieved by PE43711 alone because PE43711 has only
-  31.75 dB attenuation.
-- HMC788 and downstream RF components may compress near high output levels.
-- AD9173 frequency response and board routing may roll off with frequency.
-- Cable, load, and measurement instrument setup must be kept identical.
-- dBm, Vpp, Vrms, and Vpk must not be mixed. Store calibration in Vpk.
-
-## Suggested Next Implementation Task
-
-Implement:
-
-```text
-HostApp/calibration/rf_cal_10m_200m.json
-HostApp/host_app/rf_calibration.py
-```
-
-Then modify:
-
-```text
-HostApp/host_app/udp_client.py
-```
-
-so RF mode uses calibrated frequency-dependent `raw_vpk` instead of the fixed
-nominal +14 dB model when a calibration table is available.
+- RF and LF should have separate amplitude correction tables because the RF
+  and LF paths before the shared attenuator have different gain and frequency
+  response.
+- Keep the old PE43711 calibration files for historical comparison, but do not
+  use them as the source of truth for the new switched shared-attenuator board.
+- Keep amplitude units explicit: the calibration request and oscilloscope
+  measurement use Vpp, while HostApp runtime calculations internally use Vpk.

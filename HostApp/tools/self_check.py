@@ -87,7 +87,7 @@ def main() -> None:
     ]
     assert ask_peaks[0] > 0 and ask_peaks[1] == 0 and ask_peaks[2] > 0 and ask_peaks[3] == 0, ask_peaks
 
-    rf_config = {"pe43711_code": 0x22, "output_path": "rf", "target_amplitude_vpk": 1.0}
+    rf_config = {"relay_atten_mask": 0x5, "output_path": "rf", "target_amplitude_vpk": 1.0}
     config = build_config_payload(settings, channels, result.source)
     config["rf"].update(rf_config)
     nco_config = build_config_payload(settings, channels, result.source, "nco_only")
@@ -127,7 +127,7 @@ def main() -> None:
     print(f"modulations={','.join(modulation_sources)}")
     print(f"jesd_flags=0x{jesd_payload[5]:02x} ram_flags=0x{ram_payload[5]:02x} nco_flags=0x{nco_payload[5]:02x}")
     print(f"jesd_mask=0x{jesd_mask:04x} scales={[hex(value) for value in jesd_scales]}")
-    print(f"rf_code=0x{jesd_payload[48]:02x} output_path_sel={jesd_payload[49]}")
+    print(f"relay_mask=0x{jesd_payload[48]:02x} output_path_sel={jesd_payload[49]}")
     print(
         "lf_nco "
         f"mask=0x{int.from_bytes(lf_nco_payload[6:8], 'little'):04x} "
@@ -144,14 +144,20 @@ def main() -> None:
     assert jesd_mask == 0x0005
     assert jesd_ftws[0] != 0 and jesd_ftws[1] == 0 and jesd_ftws[2] != 0 and jesd_ftws[3] == 0
     assert jesd_scales[0] != 0 and jesd_scales[1] == 0 and jesd_scales[2] != 0 and jesd_scales[3] == 0
-    assert jesd_payload[48] == 0x22 and jesd_payload[49] in (0, 1)
-    for payload in (lf_jesd_payload, lf_ram_payload, lf_nco_payload):
-        assert payload[49] == 1
+    assert jesd_payload[48] == 0x05 and jesd_payload[49] == 1
+    for payload in (lf_jesd_payload, lf_nco_payload):
+        assert payload[49] == 0
         assert int.from_bytes(payload[6:8], "little") == 0x0004
         assert int.from_bytes(payload[36:38], "little") == 0
         assert int.from_bytes(payload[38:40], "little") == 0
         assert int.from_bytes(payload[40:42], "little") != 0
         assert int.from_bytes(payload[42:44], "little") == 0
+    assert lf_ram_payload[49] == 0
+    assert int.from_bytes(lf_ram_payload[6:8], "little") == 0x0002
+    assert int.from_bytes(lf_ram_payload[36:38], "little") == 0
+    assert int.from_bytes(lf_ram_payload[38:40], "little") != 0
+    assert int.from_bytes(lf_ram_payload[40:42], "little") == 0
+    assert int.from_bytes(lf_ram_payload[42:44], "little") == 0
     assert_ram_high_frequency_plan()
     UdpWaveformClient(NetworkSettings()).send_config(config)
     print("config frame build/send path OK")

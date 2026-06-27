@@ -105,8 +105,8 @@ module tb_pattern_gen_256_cfg;
         repeat (4) @(posedge clk);
         advance <= 2'b00;
         if (data_out[255:192] != 64'd0 ||
-            data_out[191:128] != 64'd0 ||
-            data_out[127:64]  != {16'h1003, 16'h1002, 16'h1001, 16'h1000} ||
+            data_out[191:128] != {16'h1003, 16'h1002, 16'h1001, 16'h1000} ||
+            data_out[127:64]  != 64'd0 ||
             data_out[63:0]    != 64'd0) begin
             $display("ERROR: LF waveform routing mismatch data=%064x", data_out);
             $finish;
@@ -122,8 +122,8 @@ module tb_pattern_gen_256_cfg;
         advance <= 2'b00;
         if (!u_dut.wave_active ||
             data_out[255:192] != 64'd0 ||
-            data_out[191:128] != 64'd0 ||
-            data_out[127:64]  != {16'h1003, 16'h1002, 16'h1001, 16'h1000} ||
+            data_out[191:128] != {16'h1003, 16'h1002, 16'h1001, 16'h1000} ||
+            data_out[127:64]  != 64'd0 ||
             data_out[63:0]    != 64'd0) begin
             $display("ERROR: RAM config interrupted waveform playback active=%b data=%064x",
                      u_dut.wave_active, data_out);

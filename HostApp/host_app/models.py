@@ -8,6 +8,7 @@ AMPLITUDE_UNITS: Dict[str, float] = {
 }
 
 FREQUENCY_UNITS: Dict[str, float] = {
+    "uHz": 1e-6,
     "mHz": 1e-3,
     "Hz": 1.0,
     "kHz": 1e3,
@@ -25,8 +26,8 @@ MAX_WAVEFORM_SAMPLES = 32768
 DIGITAL_SYMBOL_COUNT = 4
 
 OUTPUT_MODES: Dict[str, str] = {
-    "nco_only": "DDS单音输出",
-    "jesd_tone": "JESD single-tone",
+    "nco_only": "SPI调试",
+    "jesd_tone": "DDS单音输出",
     "ram_waveform": "任意波形输出",
 }
 
@@ -45,7 +46,7 @@ MODULATION_TYPES: Dict[str, str] = {
 
 OUTPUT_PATHS: Dict[str, str] = {
     "rf": "RF DAC0 10MHz-2GHz",
-    "lf": "LF DAC1 1mHz-10MHz",
+    "lf": "LF DAC1 3.49uHz-10MHz",
 }
 
 
@@ -144,15 +145,15 @@ class ModulationSettings:
 class RfSettings:
     output_path: str = "rf"
     target_amplitude_vpk: float = 1.0
-    pe43711_atten_db: float = 31.75
-    pe43711_code: int = 127
+    relay_atten_db: float = 0.0
+    relay_atten_mask: int = 0x00
     hmc788_gain_db: float = 14.0
 
     def to_payload(self) -> dict:
         payload = asdict(self)
         payload["output_path_label"] = OUTPUT_PATHS.get(self.output_path, OUTPUT_PATHS["rf"])
-        payload["output_path_sel"] = 1 if self.output_path == "lf" else 0
-        payload["pe43711_code"] = max(0, min(int(self.pe43711_code), 127))
+        payload["output_path_sel"] = 0 if self.output_path == "lf" else 1
+        payload["relay_atten_mask"] = max(0, min(int(self.relay_atten_mask), 15))
         return payload
 
 

@@ -26,7 +26,7 @@ class ClosedLoopPoint:
     measured_vpk: float
     old_correction_factor: float
     new_correction_factor: float
-    pe43711_code: int
+    relay_atten_mask: int
     amp_code: int
     ftw: str
     measured_freq_hz: float
@@ -215,9 +215,9 @@ class PersistentVio:
                 return
         raise TimeoutError(f"Timed out waiting for {marker}")
 
-    def apply(self, amp_code: int, ftw: int, pe_code: int, index: int) -> None:
+    def apply(self, amp_code: int, ftw: int, relay_mask: int, index: int) -> None:
         marker = f"K5VIO_DONE_{index}"
-        self._write(f"ku5p_vio_apply {amp_code:04x} {ftw:012x} 0000 000000000000 {pe_code:02x} 0")
+        self._write(f"ku5p_vio_apply {amp_code:04x} {ftw:012x} 0000 000000000000 {relay_mask:01x} 1")
         self._write(f"puts {marker}")
         self._wait_for(marker)
 
@@ -348,10 +348,10 @@ def main() -> int:
                 ftw = ftw_for(freq_hz, result.nco_hz)
                 print(
                     f"[{index}/{total}] {freq_mhz:.3f} MHz target={target_vpp:.4g} Vpp "
-                    f"amp=0x{result.amp_code:04X} pe=0x{result.pe43711_code:02X}",
+                    f"amp=0x{result.amp_code:04X} relay=0x{result.relay_atten_mask:02X}",
                     flush=True,
                 )
-                vio.apply(result.amp_code, ftw, result.pe43711_code, index)
+                vio.apply(result.amp_code, ftw, result.relay_atten_mask, index)
                 time.sleep(args.settle)
                 measured_vpp, measured_freq_hz, raw_pava = query_pava_measurement(
                     scope,
@@ -375,7 +375,7 @@ def main() -> int:
                     measured_vpk=measured_vpk,
                     old_correction_factor=old_corr,
                     new_correction_factor=new_corr,
-                    pe43711_code=result.pe43711_code,
+                    relay_atten_mask=result.relay_atten_mask,
                     amp_code=result.amp_code,
                     ftw=f"0x{ftw:012X}",
                     measured_freq_hz=measured_freq_hz,

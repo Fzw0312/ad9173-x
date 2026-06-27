@@ -16,9 +16,9 @@ if {[info exists ::env(KU5P_HW_LTX)] && $::env(KU5P_HW_LTX) ne ""} {
 proc usage {} {
     puts "Usage:"
     puts "  vivado -mode batch -source Prj/scripts/hw_runtime_vio_nco_apply.tcl -tclargs status"
-    puts "  vivado -mode batch -source Prj/scripts/hw_runtime_vio_nco_apply.tcl -tclargs apply <ch0_amp_hex> <ch0_ftw_hex> <ch1_amp_hex> <ch1_ftw_hex> ?pe_code_hex? ?path_sel?"
+    puts "  vivado -mode batch -source Prj/scripts/hw_runtime_vio_nco_apply.tcl -tclargs apply <ch0_amp_hex> <ch0_ftw_hex> <ch1_amp_hex> <ch1_ftw_hex> ?relay_mask_hex? ?path_sel?"
     puts "Example:"
-    puts "  vivado -mode batch -source Prj/scripts/hw_runtime_vio_nco_apply.tcl -tclargs apply 50ff 115c635403d6 50ff 01bc70553395 40 0"
+    puts "  vivado -mode batch -source Prj/scripts/hw_runtime_vio_nco_apply.tcl -tclargs apply 50ff 115c635403d6 50ff 01bc70553395 9 1"
 }
 
 proc norm_hex {value width_bits} {
@@ -28,7 +28,17 @@ proc norm_hex {value width_bits} {
     if {$value eq ""} {
         set value "0"
     }
-    return [format "%0*s" $width_nibbles $value]
+    if {![regexp -nocase {^[0-9a-f]+$} $value]} {
+        error "Invalid hex value '$value'"
+    }
+    regsub -nocase {^0+} $value {} value
+    if {$value eq ""} {
+        set value "0"
+    }
+    if {[string length $value] > $width_nibbles} {
+        error "Hex value '$value' does not fit in $width_bits bits"
+    }
+    return "[string repeat 0 [expr {$width_nibbles - [string length $value]}]]$value"
 }
 
 proc mapped_probe_name {name} {
@@ -39,12 +49,12 @@ proc mapped_probe_name {name} {
         probe_in3  {return dac_sanity_dbg}
         probe_in4  {return dac_debug_dbg}
         probe_in5  {return dac_runtime_dbg}
-        probe_in6  {return pe43711_status_word}
+        probe_in6  {return relay_atten_status_word}
         probe_out0 {return runtime_ch0_amp_vio}
         probe_out1 {return runtime_ch0_ftw_vio}
         probe_out2 {return runtime_ch1_amp_vio}
         probe_out3 {return runtime_ch1_ftw_vio}
-        probe_out4 {return runtime_pe43711_code_vio}
+        probe_out4 {return runtime_relay_atten_mask_vio}
         probe_out5 {return runtime_output_path_sel_vio}
         probe_out6 {return runtime_apply_toggle_vio}
         probe_out7 {return runtime_sweep_stop_ftw_vio}
@@ -179,10 +189,10 @@ if {$mode eq "status"} {
     set ch0_ftw [lindex $argv 2]
     set ch1_amp [lindex $argv 3]
     set ch1_ftw [lindex $argv 4]
-    set pe_code "40"
-    set path_sel "0"
+    set relay_mask "0"
+    set path_sel "1"
     if {[llength $argv] >= 6} {
-        set pe_code [lindex $argv 5]
+        set relay_mask [lindex $argv 5]
     }
     if {[llength $argv] >= 7} {
         set path_sel [lindex $argv 6]
@@ -194,7 +204,7 @@ if {$mode eq "status"} {
     set_out $vio probe_out1 $ch0_ftw 48
     set_out $vio probe_out2 $ch1_amp 16
     set_out $vio probe_out3 $ch1_ftw 48
-    set_out $vio probe_out4 $pe_code 7
+    set_out $vio probe_out4 $relay_mask 4
     set_out $vio probe_out5 $path_sel 1
 
     if {[string match -nocase "*1" $old_apply]} {

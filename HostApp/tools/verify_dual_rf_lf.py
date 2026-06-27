@@ -29,7 +29,7 @@ class VerifyPoint:
     rf_target_vpp: float
     rf_amp_code: int
     rf_ftw: str
-    rf_pe43711_code: int
+    rf_relay_atten_mask: int
     rf_measured_vpp: float
     rf_error_pct: float
     lf_freq_hz: float
@@ -65,7 +65,7 @@ def main() -> int:
     parser.add_argument("--pava-samples", type=int, default=8)
     parser.add_argument("--pava-interval", type=float, default=0.35)
     parser.add_argument("--settle", type=float, default=2.0)
-    parser.add_argument("--path-sel", type=int, default=0)
+    parser.add_argument("--path-sel", type=int, default=1)
     parser.add_argument("--dry-run", action="store_true", help="Only print the calculated VIO settings.")
     parser.add_argument(
         "--point",
@@ -112,7 +112,7 @@ def main() -> int:
         prepared.append((index, rf_freq, rf_vpp, rf_result, rf_ftw, lf_freq, lf_vpp, lf_result, lf_ftw))
         print(
             f"[{index}] RF {rf_freq/1e6:g}MHz {rf_vpp:g}Vpp "
-            f"amp=0x{rf_result.amp_code:04X} ftw=0x{rf_ftw:012X} pe=0x{rf_result.pe43711_code:02X}; "
+            f"amp=0x{rf_result.amp_code:04X} ftw=0x{rf_ftw:012X} relay=0x{rf_result.relay_atten_mask:02X}; "
             f"LF {lf_freq/1e6:g}MHz {lf_vpp:g}Vpp amp=0x{lf_result.amp_code:04X} ftw=0x{lf_ftw:012X}"
         )
 
@@ -131,7 +131,7 @@ def main() -> int:
             marker = f"K5VIO_DONE_DUAL_{index}"
             vio._write(
                 f"ku5p_vio_apply {rf_result.amp_code:04x} {rf_ftw:012x} "
-                f"{lf_result.amp_code:04x} {lf_ftw:012x} {rf_result.pe43711_code:02x} {args.path_sel}"
+                f"{lf_result.amp_code:04x} {lf_ftw:012x} {rf_result.relay_atten_mask:01x} {args.path_sel}"
             )
             vio._write(f"puts {marker}")
             vio._wait_for(marker)
@@ -148,7 +148,7 @@ def main() -> int:
                 rf_target_vpp=rf_vpp,
                 rf_amp_code=rf_result.amp_code,
                 rf_ftw=f"0x{rf_ftw:012X}",
-                rf_pe43711_code=rf_result.pe43711_code,
+                rf_relay_atten_mask=rf_result.relay_atten_mask,
                 rf_measured_vpp=rf_measured,
                 rf_error_pct=error_pct(rf_measured, rf_vpp),
                 lf_freq_hz=lf_freq,

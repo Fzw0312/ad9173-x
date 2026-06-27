@@ -18,7 +18,7 @@ from host_app.lf_calibration import LfCalibrationTable
 from host_app.scope_scpi import ScopeEndpoint, ScpiSocket, ScopeMeasurement, _normalize_channel, _parse_siglent_pava
 
 
-NCO_HZ = 1_474_561_031.9672773
+NCO_HZ = 1_474_560_000.0
 PREFERRED_AMP_CODE = 0x40CC
 MAX_AMP_CODE = 0x50FF
 

@@ -218,10 +218,15 @@ class WaveformGenerator:
         return amplitude_v * np.sin(carrier_phase)
 
     @staticmethod
-    def _generate_predistorted_sine(carrier_phase: np.ndarray, amplitude_v: float) -> np.ndarray:
-        phase_rad = np.deg2rad(SINE_H2_PREDISTORTION_PHASE_DEG)
+    def _generate_predistorted_sine(
+        carrier_phase: np.ndarray,
+        amplitude_v: float,
+        h2_ratio: float = SINE_H2_PREDISTORTION_RATIO,
+        h2_phase_deg: float = SINE_H2_PREDISTORTION_PHASE_DEG,
+    ) -> np.ndarray:
+        phase_rad = np.deg2rad(float(h2_phase_deg))
         wave = np.sin(carrier_phase)
-        wave += SINE_H2_PREDISTORTION_RATIO * np.sin((2.0 * carrier_phase) + phase_rad)
+        wave += float(h2_ratio) * np.sin((2.0 * carrier_phase) + phase_rad)
         wave = wave - float(np.mean(wave))
         peak = float(np.max(np.abs(wave))) if wave.size else 0.0
         if peak <= 1e-12:

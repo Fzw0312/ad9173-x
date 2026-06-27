@@ -30,7 +30,6 @@ if {![file exists $xpr_file]} {
 
 set refresh_files [list \
     [stage_file [file join $prj_dir src rtl common jesd_phy_tx_axi_init.v] [file join $stage_dir src rtl common jesd_phy_tx_axi_init.v]] \
-    [stage_file [file join $prj_dir src rtl common pe43711_serial_ctrl.v]  [file join $stage_dir src rtl common pe43711_serial_ctrl.v]] \
     [stage_file [file join $prj_dir src rtl common pattern_gen_256.v]      [file join $stage_dir src rtl common pattern_gen_256.v]] \
     [stage_file [file join $prj_dir src rtl common rgmii_rx.v]             [file join $stage_dir src rtl common rgmii_rx.v]] \
     [stage_file [file join $prj_dir src rtl common k5wg_udp_dac_config_rx.v] [file join $stage_dir src rtl common k5wg_udp_dac_config_rx.v]] \
@@ -49,9 +48,11 @@ set_property XPM_LIBRARIES {XPM_CDC XPM_MEMORY} [current_project]
 
 set runtime_vio_ip [get_ips -quiet runtime_vio]
 if {[llength $runtime_vio_ip] > 0} {
-    puts "INFO: updating runtime_vio IP for runtime_main0_ftw_vio probe_out14"
+    puts "INFO: updating runtime_vio IP for relay mask and runtime_main0_ftw_vio probes"
     set_property -dict [list \
         CONFIG.C_NUM_PROBE_OUT {15} \
+        CONFIG.C_PROBE_OUT4_WIDTH {4} \
+        CONFIG.C_PROBE_OUT4_INIT_VAL {0x0} \
         CONFIG.C_PROBE_OUT14_WIDTH {48} \
         CONFIG.C_PROBE_OUT14_INIT_VAL {0x000000000000} \
     ] $runtime_vio_ip

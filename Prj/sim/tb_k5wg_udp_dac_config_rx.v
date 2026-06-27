@@ -23,7 +23,7 @@ module tb_k5wg_udp_dac_config_rx;
     wire [15:0] cfg_scale2;
     wire [15:0] cfg_scale3;
     wire [47:0] cfg_main_nco_ftw;
-    wire [6:0] cfg_rf_atten_code;
+    wire [3:0] cfg_rf_atten_mask;
     wire cfg_output_path_sel;
     wire wave_wr_en;
     wire [WAVE_ADDR_WIDTH-1:0] wave_wr_addr;
@@ -70,7 +70,7 @@ module tb_k5wg_udp_dac_config_rx;
         .cfg_scale2     (cfg_scale2),
         .cfg_scale3     (cfg_scale3),
         .cfg_main_nco_ftw(cfg_main_nco_ftw),
-        .cfg_rf_atten_code(cfg_rf_atten_code),
+        .cfg_rf_atten_mask(cfg_rf_atten_mask),
         .cfg_output_path_sel(cfg_output_path_sel),
         .wave_wr_en     (wave_wr_en),
         .wave_wr_addr   (wave_wr_addr),
@@ -107,7 +107,7 @@ module tb_k5wg_udp_dac_config_rx;
             cfg_scale2 != 16'h3333 ||
             cfg_scale3 != 16'h4444 ||
             cfg_main_nco_ftw != 48'he31155555555 ||
-            cfg_rf_atten_code != 7'h55 ||
+            cfg_rf_atten_mask != 4'h5 ||
             cfg_output_path_sel != 1'b1 ||
             config_count != 32'd1) begin
             $display("ERROR: decoded config mismatch cfg=%b reset=%b ram=%b inc=%08x/%08x/%08x/%08x scale=%04x/%04x/%04x/%04x rf=%02x path=%b count=%0d status=%08x",
@@ -115,7 +115,7 @@ module tb_k5wg_udp_dac_config_rx;
                      cfg_phase_inc0, cfg_phase_inc1,
                      cfg_phase_inc2, cfg_phase_inc3,
                      cfg_scale0, cfg_scale1, cfg_scale2, cfg_scale3,
-                     cfg_rf_atten_code, cfg_output_path_sel,
+                     cfg_rf_atten_mask, cfg_output_path_sel,
                      config_count, status_dbg);
             $finish;
         end

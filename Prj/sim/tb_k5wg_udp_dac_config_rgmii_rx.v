@@ -29,7 +29,7 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
     wire [15:0] cfg_scale2;
     wire [15:0] cfg_scale3;
     wire [47:0] cfg_main_nco_ftw;
-    wire [6:0] cfg_rf_atten_code;
+    wire [3:0] cfg_rf_atten_mask;
     wire cfg_output_path_sel;
     wire wave_wr_en;
     wire [WAVE_ADDR_WIDTH-1:0] wave_wr_addr;
@@ -97,7 +97,7 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
         .cfg_scale2     (cfg_scale2),
         .cfg_scale3     (cfg_scale3),
         .cfg_main_nco_ftw(cfg_main_nco_ftw),
-        .cfg_rf_atten_code(cfg_rf_atten_code),
+        .cfg_rf_atten_mask(cfg_rf_atten_mask),
         .cfg_output_path_sel(cfg_output_path_sel),
         .wave_wr_en     (wave_wr_en),
         .wave_wr_addr   (wave_wr_addr),
@@ -130,7 +130,7 @@ module tb_k5wg_udp_dac_config_rgmii_rx;
             cfg_scale2 != 16'h3333 ||
             cfg_scale3 != 16'h4444 ||
             cfg_main_nco_ftw != 48'he31155555555 ||
-            cfg_rf_atten_code != 7'h55 ||
+            cfg_rf_atten_mask != 4'h5 ||
             cfg_output_path_sel != 1'b1) begin
             $display("ERROR: RGMII decoded config mismatch seen=%b ram=%b status=%08x cfgs=%0d drops=%0d inc=%08x/%08x/%08x/%08x",
                      seen_cfg, cfg_ram_mode, status_dbg, config_count, drop_count,
